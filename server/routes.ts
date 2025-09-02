@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertTransactionSchema, insertAlertSchema, insertCaseSchema, insertApiKeySchema, insertComplianceReportSchema } from "@shared/schema";
+import { insertTransactionSchema, insertAlertSchema, insertCaseSchema, insertApiKeySchema, insertComplianceReportSchema, insertSanctionedWalletSchema, insertBillingHistorySchema, insertSubscriptionSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -127,6 +127,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch("/api/api-keys/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isActive } = req.body;
+      await storage.updateApiKey(id, { isActive });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update API key" });
+    }
+  });
+
   app.delete("/api/api-keys/:id", async (req, res) => {
     try {
       const { id } = req.params;
@@ -197,6 +208,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(billing);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch billing data" });
+    }
+  });
+
+  // Sanctioned Wallets endpoints
+  app.get("/api/sanctioned-wallets", async (req, res) => {
+    try {
+      const { search, source } = req.query;
+      const filters = { search: search as string, source: source as string };
+      const wallets = await storage.getSanctionedWallets(filters);
+      res.json(wallets);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch sanctioned wallets" });
+    }
+  });
+
+  app.post("/api/sanctioned-wallets", async (req, res) => {
+    try {
+      const validatedData = insertSanctionedWalletSchema.parse(req.body);
+      const wallet = await storage.createSanctionedWallet(validatedData);
+      res.status(201).json(wallet);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        res.status(400).json({ message: "Invalid wallet data", errors: error.errors });
+      } else {
+        res.status(500).json({ message: "Failed to add sanctioned wallet" });
+      }
+    }
+  });
+
+  app.delete("/api/sanctioned-wallets/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteSanctionedWallet(id);
+      res.status(204).send();
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete sanctioned wallet" });
+    }
+  });
+
+  // PEP Profiles endpoint
+  app.get("/api/pep-profiles", async (req, res) => {
+    try {
+      const profiles = await storage.getPepProfiles();
+      res.json(profiles);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch PEP profiles" });
+    }
+  });
+
+  // Alerts endpoints (additional)
+  app.get("/api/alerts", async (req, res) => {
+    try {
+      const { status, severity, dateRange } = req.query;
+      const filters = {
+        status: status as string,
+        severity: severity as string,
+        dateRange: dateRange as string,
+      };
+      const alerts = await storage.getAlerts(filters);
+      res.json(alerts);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch alerts" });
+    }
+  });
+
+  app.patch("/api/alerts/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isResolved, assignedTo } = req.body;
+      await storage.updateAlert(id, { isResolved, assignedTo });
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update alert" });
+    }
+  });
+
+  // Cases endpoints (additional)
+  app.patch("/api/cases/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+      await storage.updateCase(id, updates);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update case" });
+    }
+  });
+
+  // Transactions endpoints (additional)
+  app.get("/api/transactions", async (req, res) => {
+    try {
+      const { page = 1, pageSize = 50, ...filters } = req.query;
+      const transactions = await storage.getTransactions({
+        page: parseInt(page as string),
+        pageSize: parseInt(pageSize as string),
+        ...filters,
+      });
+      res.json(transactions);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch transactions" });
+    }
+  });
+
+  // Billing endpoints
+  app.get("/api/billing-history", async (req, res) => {
+    try {
+      const history = await storage.getBillingHistory();
+      res.json(history);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch billing history" });
+    }
+  });
+
+  app.get("/api/subscription", async (req, res) => {
+    try {
+      const subscription = await storage.getSubscription();
+      res.json(subscription);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch subscription" });
     }
   });
 

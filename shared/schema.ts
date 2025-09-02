@@ -91,6 +91,67 @@ export const riskProfiles = pgTable("risk_profiles", {
   lastAssessment: timestamp("last_assessment").defaultNow(),
 });
 
+export const sanctionedWallets = pgTable("sanctioned_wallets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  address: text("address").notNull().unique(),
+  reason: text("reason"),
+  addedBy: varchar("added_by").references(() => users.id),
+  source: varchar("source").default("manual"), // manual, ofac, un, eu
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const walletRiskScores = pgTable("wallet_risk_scores", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  wallet: text("wallet").notNull().unique(),
+  score: integer("score").notNull(),
+  band: varchar("band").notNull(), // LOW, MEDIUM, HIGH, CRITICAL, PROHIBITED
+  riskFactors: jsonb("risk_factors"),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }).default("0.80"),
+  dataSourced: jsonb("data_sources"),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
+export const relayLogs = pgTable("relay_logs", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  partnerId: varchar("partner_id").notNull(),
+  chain: varchar("chain").notNull(),
+  fromAddr: text("from_addr"),
+  toAddr: text("to_addr").notNull(),
+  decision: varchar("decision").notNull(), // allowed, blocked
+  riskBand: varchar("risk_band").notNull(),
+  riskScore: integer("risk_score").notNull(),
+  reasons: jsonb("reasons"),
+  idempotencyKey: text("idempotency_key"),
+  txHash: text("tx_hash"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const billingHistory = pgTable("billing_history", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  description: text("description").notNull(),
+  invoiceNumber: text("invoice_number").notNull(),
+  status: varchar("status").notNull(), // paid, pending, failed
+  billingDate: timestamp("billing_date").notNull(),
+  dueDate: timestamp("due_date").notNull(),
+  paidDate: timestamp("paid_date"),
+  downloadUrl: text("download_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const subscriptions = pgTable("subscriptions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  plan: varchar("plan").notNull(), // starter, professional, enterprise
+  status: varchar("status").notNull(), // active, cancelled, expired
+  currentPeriodStart: timestamp("current_period_start").notNull(),
+  currentPeriodEnd: timestamp("current_period_end").notNull(),
+  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -132,6 +193,31 @@ export const insertRiskProfileSchema = createInsertSchema(riskProfiles).omit({
   lastAssessment: true,
 });
 
+export const insertSanctionedWalletSchema = createInsertSchema(sanctionedWallets).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWalletRiskScoreSchema = createInsertSchema(walletRiskScores).omit({
+  id: true,
+  lastUpdated: true,
+});
+
+export const insertRelayLogSchema = createInsertSchema(relayLogs).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertBillingHistorySchema = createInsertSchema(billingHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -153,3 +239,18 @@ export type InsertComplianceReport = z.infer<typeof insertComplianceReportSchema
 
 export type RiskProfile = typeof riskProfiles.$inferSelect;
 export type InsertRiskProfile = z.infer<typeof insertRiskProfileSchema>;
+
+export type SanctionedWallet = typeof sanctionedWallets.$inferSelect;
+export type InsertSanctionedWallet = z.infer<typeof insertSanctionedWalletSchema>;
+
+export type WalletRiskScore = typeof walletRiskScores.$inferSelect;
+export type InsertWalletRiskScore = z.infer<typeof insertWalletRiskScoreSchema>;
+
+export type RelayLog = typeof relayLogs.$inferSelect;
+export type InsertRelayLog = z.infer<typeof insertRelayLogSchema>;
+
+export type BillingHistory = typeof billingHistory.$inferSelect;
+export type InsertBillingHistory = z.infer<typeof insertBillingHistorySchema>;
+
+export type Subscription = typeof subscriptions.$inferSelect;
+export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
