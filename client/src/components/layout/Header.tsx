@@ -1,13 +1,26 @@
-import { Menu, Search } from "lucide-react";
+import { Menu, Search, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { NotificationPopover } from "@/components/NotificationPopover";
+import { useAuthState } from "@/hooks/useAuthState";
+import { useToast } from "@/hooks/use-toast";
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void;
 }
 
 export function Header({ onMobileMenuToggle }: HeaderProps) {
+  const { signOut } = useAuthState();
+  const { toast } = useToast();
+
+  const handleSignOut = () => {
+    signOut();
+    toast({
+      title: "Signed out",
+      description: "You have been successfully signed out.",
+    });
+  };
+
   return (
     <header className="bg-card dark:bg-card border-b border-border dark:border-border h-16 px-6">
       <div className="flex items-center justify-between h-full">
@@ -40,6 +53,17 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           
           {/* Notifications */}
           <NotificationPopover />
+          
+          {/* Sign Out Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleSignOut}
+            className="p-2 text-muted-foreground hover:text-foreground"
+            data-testid="button-signout"
+          >
+            <LogOut className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     </header>
