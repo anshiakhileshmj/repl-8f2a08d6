@@ -608,7 +608,7 @@ export default function AuthPage() {
                 <Button 
                   type="submit" 
                   className="auth-button"
-                  disabled={authLoading || !phoneValid}
+                  disabled={authLoading}
                   data-testid="button-signup"
                 >
                   {authLoading ? 'Creating Account...' : 'Create Account'}

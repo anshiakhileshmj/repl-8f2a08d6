@@ -6,7 +6,7 @@
   --auth-border: #404040;
   --auth-text: #ffffff;
   --auth-text-muted: #ffffff;
-  --auth-shadow: #404040;
+  --auth-shadow: #ffffff;
   --auth-focus: #666666;
   --auth-hover: #555555;
 }
@@ -18,7 +18,7 @@
   --auth-border: #404040;
   --auth-text: #ffffff;
   --auth-text-muted: #ffffff;
-  --auth-shadow: #404040;
+  --auth-shadow: #ffffff;
   --auth-focus: #666666;
   --auth-hover: #555555;
 }
@@ -43,7 +43,7 @@
   background: var(--auth-card-bg);
   border: 2px solid var(--auth-border);
   border-radius: 5px;
-  box-shadow: 4px 4px var(--auth-shadow);
+  box-shadow: 4px 4px #ffffff;
   color: var(--auth-text);
 }
 
@@ -141,11 +141,11 @@
   text-align: center;
   margin-top: 12px;
   font-size: 16px;
-  color: var(--auth-text-muted);
+  color: var(--auth-text);
 }
 
 .auth-toggle-link {
-  color: var(--auth-text);
+  color: var(--auth-bg-color);
   font-weight: 700;
   cursor: pointer;
   text-decoration: underline;
