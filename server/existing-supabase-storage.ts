@@ -235,11 +235,11 @@ export class ExistingSupabaseStorage implements IStorage {
       id: key.id,
       userId: key.userId,
       name: key.name || 'API Key',
-      keyHash: key.keyValue || 'aml_' + randomUUID().replace(/-/g, ''),
-      keyPreview: `${key.keyValue?.slice(0, 12)}...****` || 'aml_****',
-      environment: key.environment || 'development',
+      keyHash: key.key || 'aml_' + randomUUID().replace(/-/g, ''),
+      keyPreview: `${key.key?.slice(0, 12)}...****` || 'aml_****',
+      environment: 'production',
       isActive: key.isActive ?? true,
-      lastUsed: key.lastUsed ? new Date(key.lastUsed) : null,
+      lastUsed: key.lastUsedAt ? new Date(key.lastUsedAt) : null,
       usageCount: 0, // Would need to calculate from api_usage table
       createdAt: new Date(key.createdAt)
     }));
@@ -249,20 +249,19 @@ export class ExistingSupabaseStorage implements IStorage {
     const keyHash = `aml_${randomUUID().replace(/-/g, '')}`;
     
     const result = await db.insert(existingApiKeys).values({
-      userId: 'system-user', // Default user ID
       name: apiKey.name,
-      keyValue: keyHash,
-      environment: apiKey.environment,
+      keyHash: keyHash,
+      key: keyHash,
       isActive: true,
     }).returning();
 
     return {
       id: result[0].id,
-      userId: result[0].userId,
+      userId: result[0].userId || 'system-user',
       name: result[0].name || 'API Key',
       keyHash: keyHash,
       keyPreview: `${keyHash.slice(0, 12)}...${keyHash.slice(-4)}`,
-      environment: result[0].environment || 'development',
+      environment: 'production',
       isActive: true,
       lastUsed: null,
       usageCount: 0,
