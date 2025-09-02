@@ -9,8 +9,8 @@ interface HeaderProps {
 
 export function Header({ onMobileMenuToggle }: HeaderProps) {
   return (
-    <header className="bg-card dark:bg-card border-b border-border dark:border-border px-6 py-4">
-      <div className="flex items-center justify-between">
+    <header className="bg-card dark:bg-card border-b border-border dark:border-border h-16 px-6">
+      <div className="flex items-center justify-between h-full">
         <div className="flex items-center space-x-4">
           <Button
             variant="ghost"
