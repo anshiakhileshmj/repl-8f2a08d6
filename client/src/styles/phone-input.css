@@ -1,182 +1,127 @@
-/* International Phone Input Styles */
-.phone-input-container {
+/* International Phone Input Styles using intl-tel-input */
+
+/* Override intl-tel-input styles to match auth form */
+.phone-input-wrapper {
   flex: 1;
   max-width: 250px;
-}
-
-.phone-input-wrapper {
-  display: flex;
-  height: 40px;
-  border: 2px solid var(--auth-border);
-  border-radius: 5px;
-  box-shadow: 4px 4px var(--auth-shadow);
-  background: var(--auth-input-bg);
-  overflow: hidden;
-}
-
-.country-selector {
   position: relative;
-  display: flex;
-  align-items: center;
-  padding: 0 8px;
-  background: var(--auth-input-bg);
-  border-right: 1px solid var(--auth-border);
-  cursor: pointer;
-  min-width: 80px;
-  user-select: none;
 }
 
-.country-flag {
-  font-size: 16px;
-  margin-right: 4px;
+.phone-input-wrapper .iti {
+  width: 100% !important;
 }
 
-.country-code {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--auth-text);
-  margin-right: 4px;
+.phone-input-wrapper .iti__flag-container {
+  border: none !important;
+  background: var(--auth-input-bg) !important;
+  border-right: 1px solid var(--auth-border) !important;
 }
 
-.chevron {
-  width: 12px;
-  height: 12px;
-  color: var(--auth-text-muted);
-  transition: transform 0.2s;
+.phone-input-wrapper .iti__selected-flag {
+  background: var(--auth-input-bg) !important;
+  border: none !important;
+  padding: 0 8px !important;
+  height: 38px !important;
+  display: flex !important;
+  align-items: center !important;
 }
 
-.chevron.open {
-  transform: rotate(180deg);
+.phone-input-wrapper .iti__selected-flag:hover {
+  background: var(--auth-hover) !important;
 }
 
-.country-dropdown {
-  position: absolute;
-  top: 100%;
-  left: -2px;
-  right: -2px;
-  background: var(--auth-input-bg);
-  border: 2px solid var(--auth-border);
-  border-top: none;
-  border-radius: 0 0 5px 5px;
-  box-shadow: 4px 4px var(--auth-shadow);
-  z-index: 1000;
-  max-height: 250px;
-  overflow: hidden;
+.phone-input-wrapper .iti__arrow {
+  border-top-color: var(--auth-text-muted) !important;
+  border-left-color: transparent !important;
+  border-right-color: transparent !important;
 }
 
-.search-container {
-  padding: 8px;
-  border-bottom: 1px solid var(--auth-border);
+.phone-input-wrapper .iti--show-flags .iti__country-list {
+  background: var(--auth-input-bg) !important;
+  border: 2px solid var(--auth-border) !important;
+  border-radius: 5px !important;
+  box-shadow: 4px 4px var(--auth-shadow) !important;
+  max-height: 200px !important;
 }
 
-.country-search {
-  width: 100%;
-  padding: 6px 8px;
-  border: 1px solid var(--auth-border);
-  border-radius: 3px;
-  background: var(--auth-input-bg);
-  color: var(--auth-text);
-  font-size: 12px;
-  outline: none;
+.phone-input-wrapper .iti__country {
+  background: var(--auth-input-bg) !important;
+  color: var(--auth-text) !important;
+  padding: 8px 12px !important;
+  border-bottom: 1px solid var(--auth-border) !important;
 }
 
-.country-search:focus {
-  border-color: var(--auth-focus);
-}
-
-.country-list {
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.country-option {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background 0.15s;
-  font-size: 14px;
-}
-
-.country-option:hover {
+.phone-input-wrapper .iti__country:hover,
+.phone-input-wrapper .iti__country--highlight {
   background: var(--auth-hover) !important;
   color: #ffffff !important;
 }
 
-.country-option.selected {
-  background: var(--auth-hover);
-  color: #ffffff;
-  font-weight: 700;
+.phone-input-wrapper .iti__country-name {
+  color: inherit !important;
+  font-weight: 500 !important;
 }
 
-.country-option .country-flag {
-  margin-right: 8px;
+.phone-input-wrapper .iti__dial-code {
+  color: inherit !important;
+  font-weight: 600 !important;
+  opacity: 0.8 !important;
 }
 
-.country-option .country-name {
-  flex: 1;
-  color: inherit;
-}
-
-.country-option .country-code {
-  color: inherit;
-  opacity: 0.8;
-  font-size: 12px;
-  margin-left: 8px;
-}
-
-.phone-number-input {
-  flex: 1;
-  border: none !important;
-  box-shadow: none !important;
-  background: transparent !important;
-  padding: 5px 10px !important;
-  font-size: 15px;
-  font-weight: 600;
+/* Style the phone input field itself */
+.phone-input-wrapper .phone-number {
+  height: 40px !important;
+  border-radius: 5px !important;
+  border: 2px solid var(--auth-border) !important;
+  background-color: var(--auth-input-bg) !important;
+  box-shadow: 4px 4px var(--auth-shadow) !important;
+  font-size: 15px !important;
+  font-weight: 600 !important;
   color: var(--auth-text) !important;
+  padding: 5px 10px 5px 60px !important;
   outline: none !important;
+  box-sizing: border-box !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  max-width: 250px !important;
+  transition: border-color 0.15s, box-shadow 0.15s !important;
 }
 
-.phone-number-input::placeholder {
+.phone-input-wrapper .phone-number::placeholder {
   color: var(--auth-text-muted) !important;
-  opacity: 0.8;
+  opacity: 0.8 !important;
 }
 
-.phone-input-wrapper:focus-within {
-  border-color: var(--auth-focus);
-  outline: 2px solid var(--auth-focus);
-  outline-offset: 0;
+.phone-input-wrapper .phone-number:focus {
+  border: 2px solid var(--auth-focus) !important;
+  outline: 2px solid var(--auth-focus) !important;
+  outline-offset: 0 !important;
 }
 
-/* Responsive Design */
+/* Fix the positioning of flag container within the input */
+.phone-input-wrapper .iti__flag-container {
+  position: absolute !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  width: 50px !important;
+  z-index: 1 !important;
+  border-top-left-radius: 3px !important;
+  border-bottom-left-radius: 3px !important;
+}
+
+/* Dark mode adjustments */
+.dark .phone-input-wrapper .iti__flag-container {
+  border-right-color: var(--auth-border) !important;
+}
+
+/* Responsive design */
 @media (max-width: 700px) {
-  .phone-input-container {
-    max-width: none;
+  .phone-input-wrapper {
+    max-width: none !important;
   }
   
-  .country-selector {
-    min-width: 70px;
+  .phone-input-wrapper .phone-number {
+    max-width: none !important;
   }
-  
-  .country-code {
-    font-size: 12px;
-  }
-}
-
-/* Custom Scrollbar for Country List */
-.country-list::-webkit-scrollbar {
-  width: 6px;
-}
-
-.country-list::-webkit-scrollbar-track {
-  background: var(--auth-input-bg);
-}
-
-.country-list::-webkit-scrollbar-thumb {
-  background: var(--auth-border);
-  border-radius: 3px;
-}
-
-.country-list::-webkit-scrollbar-thumb:hover {
-  background: var(--auth-focus);
 }

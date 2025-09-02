@@ -54,7 +54,7 @@ export default function AuthPage() {
   
   // Extract mode from the URL path directly as a fallback
   const extractedMode = location.includes('/signup') ? 'signup' : 'signin';
-  const mode = (match?.mode as 'signin' | 'signup') || extractedMode;
+  const mode = (match && typeof match === 'object' ? match.mode as 'signin' | 'signup' : null) || extractedMode;
   
   const { toast } = useToast();
   const { signIn, signUp, isLoading: authLoading } = useAuthState();
