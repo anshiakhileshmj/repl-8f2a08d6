@@ -15,11 +15,13 @@ import ApiManagementPage from "@/pages/api-management";
 import SettingsPage from "@/pages/settings";
 import BillingPage from "@/pages/billing";
 import ProfilePage from "@/pages/profile";
+import Auth from "@/pages/Auth";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Dashboard} />
+      <Route path="/auth" component={Auth} />
       <Route path="/transactions" component={TransactionsPage} />
       <Route path="/alerts" component={AlertsPage} />
       <Route path="/cases" component={CasesPage} />
