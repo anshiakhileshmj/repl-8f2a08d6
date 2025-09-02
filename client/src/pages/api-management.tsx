@@ -18,8 +18,10 @@ import type { ApiKey } from "@shared/schema";
 export default function ApiManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
-  const [newKeyEnvironment, setNewKeyEnvironment] = useState("development");
+  const [newKeyEnvironment, setNewKeyEnvironment] = useState("production");
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
+  const [createdKey, setCreatedKey] = useState<ApiKey | null>(null);
+  const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -31,15 +33,13 @@ export default function ApiManagementPage() {
   const createKeyMutation = useMutation({
     mutationFn: (data: { name: string; environment: string }) =>
       apiRequest("POST", "/api/api-keys", data),
-    onSuccess: () => {
+    onSuccess: (newApiKey: ApiKey) => {
       queryClient.invalidateQueries({ queryKey: ["/api/api-keys"] });
       setIsCreateDialogOpen(false);
       setNewKeyName("");
-      setNewKeyEnvironment("development");
-      toast({
-        title: "Success",
-        description: "API key created successfully",
-      });
+      setNewKeyEnvironment("production");
+      setCreatedKey(newApiKey);
+      setIsSuccessDialogOpen(true);
     },
     onError: () => {
       toast({
@@ -176,7 +176,9 @@ export default function ApiManagementPage() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="development">Development</SelectItem>
+                        <SelectItem value="development" disabled className="opacity-50 cursor-not-allowed">
+                          Development - Coming Soon
+                        </SelectItem>
                         <SelectItem value="production">Production</SelectItem>
                       </SelectContent>
                     </Select>
@@ -196,6 +198,77 @@ export default function ApiManagementPage() {
                     data-testid="button-confirm-create"
                   >
                     {createKeyMutation.isPending ? "Creating..." : "Create Key"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            {/* Success Dialog for showing created API key */}
+            <Dialog open={isSuccessDialogOpen} onOpenChange={setIsSuccessDialogOpen}>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>API Key Created Successfully</DialogTitle>
+                  <DialogDescription>
+                    Your new API key has been generated. Save these details as they won't be shown again.
+                  </DialogDescription>
+                </DialogHeader>
+                {createdKey && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Name</Label>
+                      <div className="text-sm font-medium">{createdKey.name}</div>
+                    </div>
+                    <div>
+                      <Label>Key Preview</Label>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <code className="font-mono text-sm bg-muted px-2 py-1 rounded flex-1">
+                          {createdKey.keyPreview}
+                        </code>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => copyToClipboard(createdKey.keyHash)}
+                          data-testid="button-copy-new-key"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Environment</Label>
+                      <div className="mt-1">
+                        <Badge variant={createdKey.environment === "production" ? "destructive" : "default"}>
+                          {createdKey.environment}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Status</Label>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <ToggleRight className="w-5 h-5 text-green-500" />
+                        <span className="text-green-600">Active</span>
+                      </div>
+                    </div>
+                    <div>
+                      <Label>Usage</Label>
+                      <div className="text-sm">0 requests</div>
+                    </div>
+                    <div>
+                      <Label>Last Used</Label>
+                      <div className="text-sm text-muted-foreground">Never</div>
+                    </div>
+                    <div>
+                      <Label>Created</Label>
+                      <div className="text-sm">{new Date(createdKey.createdAt!).toLocaleDateString()}</div>
+                    </div>
+                  </div>
+                )}
+                <DialogFooter>
+                  <Button 
+                    onClick={() => setIsSuccessDialogOpen(false)}
+                    data-testid="button-close-success"
+                  >
+                    Got it
                   </Button>
                 </DialogFooter>
               </DialogContent>
