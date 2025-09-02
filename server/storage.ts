@@ -413,4 +413,6 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+import { ExistingSupabaseStorage } from './existing-supabase-storage';
+
+export const storage = new ExistingSupabaseStorage();
