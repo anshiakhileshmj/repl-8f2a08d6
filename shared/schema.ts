@@ -1,221 +1,248 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, timestamp, decimal, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, decimal, integer, boolean, jsonb, bigint, bigserial, serial } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
+// API Endpoints Table - Stores API documentation
+export const apiEndpoints = pgTable("api_endpoints", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username"),
-  password: text("password"),
-  firstName: text("first_name").notNull(),
-  lastName: text("last_name").notNull(),
-  fullName: text("full_name").notNull(),
-  email: text("email").notNull().unique(),
-  phone: text("phone"),
-  company: text("company"),
-  jobTitle: text("job_title"),
-  department: text("department"),
-  location: text("location"),
-  bio: text("bio"),
-  website: text("website"),
-  linkedin: text("linkedin"),
-  profileImageUrl: text("profile_image_url"),
-  country: text("country"),
-  businessType: text("business_type"),
-  twoFactorEnabled: boolean("two_factor_enabled").default(false),
-  emailVerified: boolean("email_verified").default(false),
-  phoneVerified: boolean("phone_verified").default(false),
-  lastLogin: timestamp("last_login"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-export const transactions = pgTable("transactions", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  customerId: varchar("customer_id").notNull(),
-  customerName: text("customer_name").notNull(),
-  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
-  currency: varchar("currency", { length: 3 }).default("USD"),
-  riskScore: integer("risk_score").notNull(),
-  status: varchar("status").notNull(), // pending, flagged, approved, rejected
-  transactionType: text("transaction_type").notNull(),
-  sourceCountry: text("source_country"),
-  destinationCountry: text("destination_country"),
-  description: text("description"),
-  flaggedReasons: jsonb("flagged_reasons"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
-export const alerts = pgTable("alerts", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  transactionId: varchar("transaction_id").references(() => transactions.id),
-  severity: varchar("severity").notNull(), // critical, high, medium, low
-  title: text("title").notNull(),
+  name: text("name").notNull(),
+  method: text("method").notNull(),
+  path: text("path").notNull(),
   description: text("description").notNull(),
-  alertType: varchar("alert_type").notNull(), // sanctions, pep, unusual_pattern, threshold
-  isResolved: boolean("is_resolved").default(false),
-  assignedTo: varchar("assigned_to"),
-  createdAt: timestamp("created_at").defaultNow(),
+  parameters: jsonb("parameters").default(sql`'{}'::jsonb`),
+  responseSchema: jsonb("response_schema").default(sql`'{}'::jsonb`),
+  rateLimit: integer("rate_limit").default(60),
+  category: text("category").notNull(),
+  exampleRequest: text("example_request"),
+  exampleResponse: text("example_response"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
-export const cases = pgTable("cases", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  caseNumber: text("case_number").notNull().unique(),
-  title: text("title").notNull(),
-  description: text("description").notNull(),
-  status: varchar("status").notNull(), // open, in_progress, resolved, closed
-  priority: varchar("priority").notNull(), // low, medium, high, urgent
-  assignedTo: text("assigned_to"),
-  transactionIds: jsonb("transaction_ids"),
-  notes: jsonb("notes"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
+// API Keys Table - Core API management
 export const apiKeys = pgTable("api_keys", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
   name: text("name").notNull(),
+  key: text("key"),
   keyHash: text("key_hash").notNull(),
-  keyPreview: text("key_preview").notNull(),
-  environment: varchar("environment").notNull(), // production, development
-  isActive: boolean("is_active").default(true),
-  lastUsed: timestamp("last_used"),
-  usageCount: integer("usage_count").default(0),
-  createdAt: timestamp("created_at").defaultNow(),
+  partnerId: text("partner_id"),
+  userId: varchar("user_id"),
+  isActive: boolean("is_active").notNull().default(true),
+  active: boolean("active").default(true),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  rateLimitPerMinute: integer("rate_limit_per_minute").notNull().default(60),
 });
 
-export const complianceReports = pgTable("compliance_reports", {
+// API Usage Table - Tracking and analytics
+export const apiUsage = pgTable("api_usage", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  title: text("title").notNull(),
-  reportType: varchar("report_type").notNull(), // sar, ctr, monthly, quarterly
-  description: text("description"),
-  fileUrl: text("file_url"),
-  generatedBy: varchar("generated_by").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
+  apiKeyId: varchar("api_key_id").notNull(),
+  endpoint: text("endpoint").notNull(),
+  ipAddress: text("ip_address"),
+  timestamp: timestamp("timestamp", { withTimezone: true }).notNull().defaultNow(),
+  responseTimeMs: integer("response_time_ms"),
+  statusCode: integer("status_code"),
 });
 
-export const riskProfiles = pgTable("risk_profiles", {
+// Developer Profiles Table - User management
+export const developerProfiles = pgTable("developer_profiles", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  customerId: varchar("customer_id").notNull().unique(),
-  customerName: text("customer_name").notNull(),
-  overallRiskScore: integer("overall_risk_score").notNull(),
-  riskFactors: jsonb("risk_factors"),
-  pepStatus: boolean("pep_status").default(false),
-  sanctionsMatch: boolean("sanctions_match").default(false),
-  lastAssessment: timestamp("last_assessment").defaultNow(),
+  userId: varchar("user_id").notNull(),
+  companyName: text("company_name"),
+  website: text("website"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  apiUsagePlan: text("api_usage_plan").default("free"),
+  monthlyRequestLimit: integer("monthly_request_limit").default(1000),
 });
 
-export const sanctionedWallets = pgTable("sanctioned_wallets", {
+// Real-time Transfers Table
+export const realTimeTransfers = pgTable("real_time_transfers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  address: text("address").notNull().unique(),
-  reason: text("reason"),
-  addedBy: varchar("added_by").references(() => users.id),
-  source: varchar("source").default("manual"), // manual, ofac, un, eu
-  isActive: boolean("is_active").default(true),
-  createdAt: timestamp("created_at").defaultNow(),
+  hash: text("hash").notNull(),
+  fromAddress: text("from_address").notNull(),
+  toAddress: text("to_address").notNull(),
+  amount: decimal("amount").notNull(),
+  currency: text("currency").notNull().default("ETH"),
+  network: text("network").notNull().default("ethereum"),
+  blockNumber: integer("block_number").notNull(),
+  timestamp: timestamp("timestamp", { withTimezone: true }).notNull(),
+  usdValue: decimal("usd_value").notNull().default("0"),
+  isWhale: boolean("is_whale").notNull().default(false),
+  gasPrice: decimal("gas_price"),
+  gasUsed: decimal("gas_used"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const walletRiskScores = pgTable("wallet_risk_scores", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  wallet: text("wallet").notNull().unique(),
-  score: integer("score").notNull(),
-  band: varchar("band").notNull(), // LOW, MEDIUM, HIGH, CRITICAL, PROHIBITED
-  riskFactors: jsonb("risk_factors"),
-  confidence: decimal("confidence", { precision: 3, scale: 2 }).default("0.80"),
-  dataSourced: jsonb("data_sources"),
-  lastUpdated: timestamp("last_updated").defaultNow(),
-});
-
+// Relay Logs Table - Transaction logging
 export const relayLogs = pgTable("relay_logs", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  partnerId: varchar("partner_id").notNull(),
-  chain: varchar("chain").notNull(),
+  id: serial("id").primaryKey(),
+  partnerId: text("partner_id"),
+  chain: text("chain").notNull(),
   fromAddr: text("from_addr"),
   toAddr: text("to_addr").notNull(),
-  decision: varchar("decision").notNull(), // allowed, blocked
-  riskBand: varchar("risk_band").notNull(),
-  riskScore: integer("risk_score").notNull(),
-  reasons: jsonb("reasons"),
-  idempotencyKey: text("idempotency_key"),
+  riskScore: integer("risk_score").notNull().default(0),
+  riskBand: text("risk_band").notNull(),
+  decision: text("decision").notNull(),
+  reasons: text("reasons").array().default(sql`'{}'::text[]`),
   txHash: text("tx_hash"),
-  createdAt: timestamp("created_at").defaultNow(),
+  idempotencyKey: text("idempotency_key"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const billingHistory = pgTable("billing_history", {
+// Risk Events Table
+export const riskEvents = pgTable("risk_events", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
-  description: text("description").notNull(),
-  invoiceNumber: text("invoice_number").notNull(),
-  status: varchar("status").notNull(), // paid, pending, failed
-  billingDate: timestamp("billing_date").notNull(),
-  dueDate: timestamp("due_date").notNull(),
-  paidDate: timestamp("paid_date"),
-  downloadUrl: text("download_url"),
-  createdAt: timestamp("created_at").defaultNow(),
+  wallet: text("wallet").notNull(),
+  feature: text("feature").notNull(),
+  category: varchar("category").default("BEHAVIORAL"),
+  details: jsonb("details").default(sql`'{}'::jsonb`),
+  weightApplied: integer("weight_applied").notNull().default(0),
+  confidence: decimal("confidence").default("1.0"),
+  metadata: jsonb("metadata"),
+  occurredAt: timestamp("occurred_at", { withTimezone: true }).defaultNow(),
+  timestamp: timestamp("timestamp", { withTimezone: true }).notNull().defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-export const subscriptions = pgTable("subscriptions", {
+// Risk Scores Table
+export const riskScores = pgTable("risk_scores", {
+  id: bigint("id", { mode: "number" }).primaryKey().default(sql`nextval()`),
+  wallet: text("wallet").notNull(),
+  score: integer("score").notNull().default(0),
+  band: text("band").notNull().default("LOW"),
+  confidence: decimal("confidence").default("1.0"),
+  metadata: jsonb("metadata"),
+  lastUpdated: timestamp("last_updated", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  riskFactors: jsonb("risk_factors").default(sql`'[]'::jsonb`),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// Sanctioned Wallets Table - AML compliance
+export const sanctionedWallets = pgTable("sanctioned_wallets", {
+  address: text("address").primaryKey(),
+  source: text("source").notNull().default("OFAC"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Stablecoin Transfers Table
+export const stablecoinTransfers = pgTable("stablecoin_transfers", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  userId: varchar("user_id").references(() => users.id).notNull(),
-  plan: varchar("plan").notNull(), // starter, professional, enterprise
-  status: varchar("status").notNull(), // active, cancelled, expired
-  currentPeriodStart: timestamp("current_period_start").notNull(),
-  currentPeriodEnd: timestamp("current_period_end").notNull(),
-  cancelAtPeriodEnd: boolean("cancel_at_period_end").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
+  senderAddress: text("sender_address").notNull(),
+  receiverAddress: text("receiver_address").notNull(),
+  tokenSymbol: text("token_symbol").notNull(),
+  tokenName: text("token_name").notNull(),
+  amount: decimal("amount").notNull(),
+  network: text("network").notNull().default("ethereum"),
+  blockTime: timestamp("block_time", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Tracked Wallets Table
+export const trackedWallets = pgTable("tracked_wallets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  address: text("address").notNull(),
+  name: text("name"),
+  network: text("network").notNull().default("eth"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Wallet Risk Ratings Table
+export const walletRiskRatings = pgTable("wallet_risk_ratings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: text("wallet_address").notNull(),
+  riskScore: integer("risk_score"),
+  riskLevel: text("risk_level"),
+  totalTransactions: integer("total_transactions").notNull().default(0),
+  failedTransactions: integer("failed_transactions").notNull().default(0),
+  failedTxRatio: decimal("failed_tx_ratio"),
+  walletAgeDays: integer("wallet_age_days"),
+  firstTxDate: timestamp("first_tx_date", { withTimezone: true }),
+  network: text("network").default("ethereum"),
+  lastUpdated: timestamp("last_updated", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Wallet Transactions Table
+export const walletTransactions = pgTable("wallet_transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  walletAddress: text("wallet_address").notNull(),
+  txHash: text("tx_hash").notNull(),
+  fromAddress: text("from_address").notNull(),
+  toAddress: text("to_address").notNull(),
+  valueEth: decimal("value_eth").notNull(),
+  timestamp: timestamp("timestamp", { withTimezone: true }).notNull(),
+  isError: boolean("is_error").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Transaction Patterns Table
+export const transactionPatterns = pgTable("transaction_patterns", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  wallet: text("wallet").notNull(),
+  patternType: text("pattern_type").notNull(),
+  patternData: jsonb("pattern_data").notNull(),
+  confidence: decimal("confidence", { precision: 3, scale: 2 }).default("0.80"),
+  detectedAt: timestamp("detected_at", { withTimezone: true }).defaultNow(),
+  isActive: boolean("is_active").default(true),
+});
+
+// Network Associations Table
+export const networkAssociations = pgTable("network_associations", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  wallet: text("wallet").notNull(),
+  associatedWallet: text("associated_wallet").notNull(),
+  associationType: text("association_type").notNull(),
+  strength: decimal("strength", { precision: 3, scale: 2 }).default("1.00"),
+  firstSeen: timestamp("first_seen", { withTimezone: true }).defaultNow(),
+  lastSeen: timestamp("last_seen", { withTimezone: true }).defaultNow(),
+});
+
+// Risk Indicators Table
+export const riskIndicators = pgTable("risk_indicators", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  indicatorKey: text("indicator_key").notNull().unique(),
+  category: text("category").notNull(),
+  baseWeight: decimal("base_weight", { precision: 5, scale: 2 }).notNull(),
+  halfLifeDays: integer("half_life_days").notNull().default(30),
+  isCritical: boolean("is_critical").default(false),
+  description: text("description"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
 
 // Insert schemas
-export const insertUserSchema = createInsertSchema(users).omit({
+export const insertApiEndpointSchema = createInsertSchema(apiEndpoints).omit({
   id: true,
   createdAt: true,
 });
 
-export const insertTransactionSchema = createInsertSchema(transactions).omit({
+export const insertApiKeySchema = createInsertSchema(apiKeys).omit({
   id: true,
+  key: true,
+  keyHash: true,
+  lastUsedAt: true,
   createdAt: true,
 });
 
-export const insertAlertSchema = createInsertSchema(alerts).omit({
+export const insertApiUsageSchema = createInsertSchema(apiUsage).omit({
   id: true,
-  createdAt: true,
+  timestamp: true,
 });
 
-export const insertCaseSchema = createInsertSchema(cases).omit({
+export const insertDeveloperProfileSchema = createInsertSchema(developerProfiles).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 });
 
-export const insertApiKeySchema = createInsertSchema(apiKeys).omit({
+export const insertRealTimeTransferSchema = createInsertSchema(realTimeTransfers).omit({
   id: true,
   createdAt: true,
-  keyHash: true,
-  keyPreview: true,
-  lastUsed: true,
-  usageCount: true,
-});
-
-export const insertComplianceReportSchema = createInsertSchema(complianceReports).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertRiskProfileSchema = createInsertSchema(riskProfiles).omit({
-  id: true,
-  lastAssessment: true,
-});
-
-export const insertSanctionedWalletSchema = createInsertSchema(sanctionedWallets).omit({
-  id: true,
-  createdAt: true,
-});
-
-export const insertWalletRiskScoreSchema = createInsertSchema(walletRiskScores).omit({
-  id: true,
-  lastUpdated: true,
 });
 
 export const insertRelayLogSchema = createInsertSchema(relayLogs).omit({
@@ -223,54 +250,155 @@ export const insertRelayLogSchema = createInsertSchema(relayLogs).omit({
   createdAt: true,
 });
 
-export const insertBillingHistorySchema = createInsertSchema(billingHistory).omit({
+export const insertRiskEventSchema = createInsertSchema(riskEvents).omit({
+  id: true,
+  occurredAt: true,
+  timestamp: true,
+  createdAt: true,
+});
+
+export const insertRiskScoreSchema = createInsertSchema(riskScores).omit({
+  id: true,
+  lastUpdated: true,
+  updatedAt: true,
+  createdAt: true,
+});
+
+export const insertSanctionedWalletSchema = createInsertSchema(sanctionedWallets).omit({
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertStablecoinTransferSchema = createInsertSchema(stablecoinTransfers).omit({
   id: true,
   createdAt: true,
 });
 
-export const insertSubscriptionSchema = createInsertSchema(subscriptions).omit({
+export const insertTrackedWalletSchema = createInsertSchema(trackedWallets).omit({
   id: true,
   createdAt: true,
+});
+
+export const insertWalletRiskRatingSchema = createInsertSchema(walletRiskRatings).omit({
+  id: true,
+  lastUpdated: true,
+});
+
+export const insertWalletTransactionSchema = createInsertSchema(walletTransactions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertTransactionPatternSchema = createInsertSchema(transactionPatterns).omit({
+  id: true,
+  detectedAt: true,
+});
+
+export const insertNetworkAssociationSchema = createInsertSchema(networkAssociations).omit({
+  id: true,
+  firstSeen: true,
+  lastSeen: true,
+});
+
+export const insertRiskIndicatorSchema = createInsertSchema(riskIndicators).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 // Types
-export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-
-export type Transaction = typeof transactions.$inferSelect;
-export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
-
-export type Alert = typeof alerts.$inferSelect;
-export type InsertAlert = z.infer<typeof insertAlertSchema>;
-
-export type Case = typeof cases.$inferSelect;
-export type InsertCase = z.infer<typeof insertCaseSchema>;
+export type ApiEndpoint = typeof apiEndpoints.$inferSelect;
+export type InsertApiEndpoint = z.infer<typeof insertApiEndpointSchema>;
 
 export type ApiKey = typeof apiKeys.$inferSelect;
 export type InsertApiKey = z.infer<typeof insertApiKeySchema>;
 
-export type ComplianceReport = typeof complianceReports.$inferSelect;
-export type InsertComplianceReport = z.infer<typeof insertComplianceReportSchema>;
+export type ApiUsage = typeof apiUsage.$inferSelect;
+export type InsertApiUsage = z.infer<typeof insertApiUsageSchema>;
 
-export type RiskProfile = typeof riskProfiles.$inferSelect;
-export type InsertRiskProfile = z.infer<typeof insertRiskProfileSchema>;
+export type DeveloperProfile = typeof developerProfiles.$inferSelect;
+export type InsertDeveloperProfile = z.infer<typeof insertDeveloperProfileSchema>;
 
-export type SanctionedWallet = typeof sanctionedWallets.$inferSelect;
-export type InsertSanctionedWallet = z.infer<typeof insertSanctionedWalletSchema>;
-
-export type WalletRiskScore = typeof walletRiskScores.$inferSelect;
-export type InsertWalletRiskScore = z.infer<typeof insertWalletRiskScoreSchema>;
+export type RealTimeTransfer = typeof realTimeTransfers.$inferSelect;
+export type InsertRealTimeTransfer = z.infer<typeof insertRealTimeTransferSchema>;
 
 export type RelayLog = typeof relayLogs.$inferSelect;
 export type InsertRelayLog = z.infer<typeof insertRelayLogSchema>;
 
-export type BillingHistory = typeof billingHistory.$inferSelect;
-export type InsertBillingHistory = z.infer<typeof insertBillingHistorySchema>;
+export type RiskEvent = typeof riskEvents.$inferSelect;
+export type InsertRiskEvent = z.infer<typeof insertRiskEventSchema>;
 
-export type Subscription = typeof subscriptions.$inferSelect;
-export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+export type RiskScore = typeof riskScores.$inferSelect;
+export type InsertRiskScore = z.infer<typeof insertRiskScoreSchema>;
 
-// Auth and profile schemas
+export type SanctionedWallet = typeof sanctionedWallets.$inferSelect;
+export type InsertSanctionedWallet = z.infer<typeof insertSanctionedWalletSchema>;
+
+export type StablecoinTransfer = typeof stablecoinTransfers.$inferSelect;
+export type InsertStablecoinTransfer = z.infer<typeof insertStablecoinTransferSchema>;
+
+export type TrackedWallet = typeof trackedWallets.$inferSelect;
+export type InsertTrackedWallet = z.infer<typeof insertTrackedWalletSchema>;
+
+export type WalletRiskRating = typeof walletRiskRatings.$inferSelect;
+export type InsertWalletRiskRating = z.infer<typeof insertWalletRiskRatingSchema>;
+
+export type WalletTransaction = typeof walletTransactions.$inferSelect;
+export type InsertWalletTransaction = z.infer<typeof insertWalletTransactionSchema>;
+
+export type TransactionPattern = typeof transactionPatterns.$inferSelect;
+export type InsertTransactionPattern = z.infer<typeof insertTransactionPatternSchema>;
+
+export type NetworkAssociation = typeof networkAssociations.$inferSelect;
+export type InsertNetworkAssociation = z.infer<typeof insertNetworkAssociationSchema>;
+
+export type RiskIndicator = typeof riskIndicators.$inferSelect;
+export type InsertRiskIndicator = z.infer<typeof insertRiskIndicatorSchema>;
+
+// Legacy types for compatibility with existing AML dashboard components
+export type Transaction = {
+  id: string;
+  customerId: string;
+  customerName: string;
+  amount: string;
+  currency: string;
+  riskScore: number;
+  status: string;
+  transactionType: string;
+  sourceCountry?: string;
+  destinationCountry?: string;
+  description?: string;
+  flaggedReasons?: any[];
+  createdAt?: Date;
+};
+
+export type Alert = {
+  id: string;
+  transactionId?: string;
+  severity: string;
+  title: string;
+  description: string;
+  alertType: string;
+  isResolved: boolean;
+  assignedTo?: string;
+  createdAt?: Date;
+};
+
+export type Case = {
+  id: string;
+  caseNumber: string;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  assignedTo?: string;
+  transactionIds?: string[];
+  notes?: any[];
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+// User authentication schemas
 export const signUpSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
@@ -288,21 +416,8 @@ export const signUpSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
-  fullName: z.string().optional(),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
-  company: z.string().optional(),
-  jobTitle: z.string().optional(),
-  department: z.string().optional(),
-  location: z.string().optional(),
-  bio: z.string().optional(),
+  companyName: z.string().optional(),
   website: z.string().url().optional().or(z.literal("")),
-  linkedin: z.string().optional(),
-  profileImageUrl: z.string().optional(),
-  country: z.string().optional(),
-  businessType: z.string().optional(),
 });
 
 export type SignUpInput = z.infer<typeof signUpSchema>;

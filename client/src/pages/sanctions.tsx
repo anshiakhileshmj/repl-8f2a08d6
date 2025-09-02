@@ -44,14 +44,13 @@ export default function SanctionsPage() {
   });
 
   const addSanctionMutation = useMutation({
-    mutationFn: (data: { address: string; reason: string; source: string }) =>
+    mutationFn: (data: { address: string; source: string }) =>
       apiRequest("POST", "/api/sanctioned-wallets", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sanctioned-wallets"] });
       setIsAddDialogOpen(false);
       setNewAddress("");
-      setNewReason("");
-      setNewSource("manual");
+      setNewSource("OFAC");
       toast({
         title: "Success",
         description: "Address added to sanctions list",
@@ -67,8 +66,8 @@ export default function SanctionsPage() {
   });
 
   const removeSanctionMutation = useMutation({
-    mutationFn: (id: string) =>
-      apiRequest("DELETE", `/api/sanctioned-wallets/${id}`),
+    mutationFn: (address: string) =>
+      apiRequest("DELETE", `/api/sanctioned-wallets/${address}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/sanctioned-wallets"] });
       toast({
@@ -87,12 +86,11 @@ export default function SanctionsPage() {
 
   const filteredWallets = sanctionedWallets?.filter(wallet => {
     const matchesSearch = !searchQuery || 
-      wallet.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      wallet.reason?.toLowerCase().includes(searchQuery.toLowerCase());
+      wallet.address.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesSource = sourceFilter === "all" || wallet.source === sourceFilter;
     
-    return matchesSearch && matchesSource && wallet.isActive;
+    return matchesSearch && matchesSource;
   }) || [];
 
   const handleAddSanction = () => {
@@ -117,7 +115,6 @@ export default function SanctionsPage() {
 
     addSanctionMutation.mutate({
       address: newAddress.trim(),
-      reason: newReason.trim(),
       source: newSource,
     });
   };
@@ -324,7 +321,7 @@ export default function SanctionsPage() {
                   </TableRow>
                 ) : (
                   filteredWallets.map((wallet) => (
-                    <TableRow key={wallet.id} data-testid={`wallet-${wallet.id}`}>
+                    <TableRow key={wallet.address} data-testid={`wallet-${wallet.address}`}>
                       <TableCell className="font-mono text-sm">
                         {wallet.address.slice(0, 8)}...{wallet.address.slice(-6)}
                       </TableCell>
@@ -335,30 +332,23 @@ export default function SanctionsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="max-w-xs text-sm">
-                          {wallet.reason || "No reason provided"}
+                          System managed
                         </div>
                       </TableCell>
                       <TableCell>
-                        {wallet.addedBy ? (
-                          <div className="flex items-center space-x-2">
-                            <User className="w-4 h-4" />
-                            <span>User</span>
-                          </div>
-                        ) : (
-                          <span className="text-muted-foreground">System</span>
-                        )}
+                        <span className="text-muted-foreground">System</span>
                       </TableCell>
                       <TableCell>
                         {new Date(wallet.createdAt!).toLocaleDateString()}
                       </TableCell>
                       <TableCell>
-                        {wallet.source === "manual" && (
+                        {wallet.source === "OFAC" && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => removeSanctionMutation.mutate(wallet.id)}
+                            onClick={() => removeSanctionMutation.mutate(wallet.address)}
                             disabled={removeSanctionMutation.isPending}
-                            data-testid={`button-remove-${wallet.id}`}
+                            data-testid={`button-remove-${wallet.address}`}
                           >
                             <Trash2 className="w-4 h-4 text-red-500" />
                           </Button>

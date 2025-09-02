@@ -38,8 +38,15 @@ function MetricCard({ title, value, change, changeType, icon, iconBgColor }: Met
   );
 }
 
+interface MetricsData {
+  highRiskCount: number;
+  activeCases: number;
+  sanctionsMatches: number;
+  apiCalls: number;
+}
+
 export function MetricsCards() {
-  const { data: metrics, isLoading } = useQuery({
+  const { data: metrics, isLoading } = useQuery<MetricsData>({
     queryKey: ["/api/metrics"],
     enabled: true,
   });
@@ -70,7 +77,7 @@ export function MetricsCards() {
     apiCalls: 45231,
   };
 
-  const metricsData = metrics || defaultMetrics;
+  const metricsData = (metrics && Object.keys(metrics).length > 0) ? metrics : defaultMetrics;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

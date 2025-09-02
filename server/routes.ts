@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertTransactionSchema, insertAlertSchema, insertCaseSchema, insertApiKeySchema, insertComplianceReportSchema, insertSanctionedWalletSchema, insertBillingHistorySchema, insertSubscriptionSchema } from "@shared/schema";
+import { insertApiKeySchema, insertSanctionedWalletSchema, insertRealTimeTransferSchema, insertRiskEventSchema, insertWalletTransactionSchema, insertRelayLogSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/transactions", async (req, res) => {
     try {
-      const validatedData = insertTransactionSchema.parse(req.body);
+      const validatedData = insertWalletTransactionSchema.parse(req.body);
       const transaction = await storage.createTransaction(validatedData);
       res.status(201).json(transaction);
     } catch (error) {
@@ -67,7 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/alerts", async (req, res) => {
     try {
-      const validatedData = insertAlertSchema.parse(req.body);
+      const validatedData = insertRiskEventSchema.parse(req.body);
       const alert = await storage.createAlert(validatedData);
       res.status(201).json(alert);
     } catch (error) {
@@ -91,7 +91,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/cases", async (req, res) => {
     try {
-      const validatedData = insertCaseSchema.parse(req.body);
+      const validatedData = insertRelayLogSchema.parse(req.body);
       const caseItem = await storage.createCase(validatedData);
       res.status(201).json(caseItem);
     } catch (error) {
@@ -170,7 +170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/reports", async (req, res) => {
     try {
-      const validatedData = insertComplianceReportSchema.parse(req.body);
+      const validatedData = insertRiskEventSchema.parse(req.body);
       const report = await storage.createReport(validatedData);
       res.status(201).json(report);
     } catch (error) {
@@ -237,10 +237,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/sanctioned-wallets/:id", async (req, res) => {
+  app.delete("/api/sanctioned-wallets/:address", async (req, res) => {
     try {
-      const { id } = req.params;
-      await storage.deleteSanctionedWallet(id);
+      const { address } = req.params;
+      await storage.deleteSanctionedWallet(address);
       res.status(204).send();
     } catch (error) {
       res.status(500).json({ message: "Failed to delete sanctioned wallet" });

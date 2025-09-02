@@ -131,8 +131,8 @@ export default function ApiManagementPage() {
   };
 
   const activeKeys = apiKeys?.filter(key => key.isActive).length || 0;
-  const productionKeys = apiKeys?.filter(key => key.environment === "production").length || 0;
-  const totalUsage = apiKeys?.reduce((sum, key) => sum + (key.usageCount || 0), 0) || 0;
+  const productionKeys = apiKeys?.length || 0;
+  const totalUsage = 0; // Usage data would come from api_usage table
 
   return (
     <Layout>
@@ -218,10 +218,10 @@ export default function ApiManagementPage() {
                       <div className="text-sm font-medium">{createdKey.name}</div>
                     </div>
                     <div>
-                      <Label>Key Preview</Label>
+                      <Label>API Key</Label>
                       <div className="flex items-center space-x-2 mt-1">
                         <code className="font-mono text-sm bg-muted px-2 py-1 rounded flex-1">
-                          {createdKey.keyPreview}
+                          {createdKey.key?.slice(0, 12)}...{createdKey.key?.slice(-4)}
                         </code>
                         <Button
                           variant="ghost"
@@ -236,8 +236,8 @@ export default function ApiManagementPage() {
                     <div>
                       <Label>Environment</Label>
                       <div className="mt-1">
-                        <Badge variant={createdKey.environment === "production" ? "destructive" : "default"}>
-                          {createdKey.environment}
+                        <Badge variant="default">
+                          production
                         </Badge>
                       </div>
                     </div>
@@ -364,7 +364,7 @@ export default function ApiManagementPage() {
                       <TableCell>
                         <div className="flex items-center space-x-2">
                           <code className="font-mono text-sm bg-muted px-2 py-1 rounded">
-                            {visibleKeys.has(apiKey.id) ? apiKey.keyHash : apiKey.keyPreview}
+                            {visibleKeys.has(apiKey.id) ? apiKey.key : apiKey.key?.slice(0, 12) + '....' + apiKey.key?.slice(-4)}
                           </code>
                           <Button
                             variant="ghost"
@@ -389,8 +389,8 @@ export default function ApiManagementPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={apiKey.environment === "production" ? "destructive" : "default"}>
-                          {apiKey.environment}
+                        <Badge variant="default">
+                          production
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -417,11 +417,11 @@ export default function ApiManagementPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="font-medium">{(apiKey.usageCount || 0).toLocaleString()}</span>
+                        <span className="font-medium">0</span>
                       </TableCell>
                       <TableCell>
-                        {apiKey.lastUsed ? (
-                          new Date(apiKey.lastUsed).toLocaleDateString()
+                        {apiKey.lastUsedAt ? (
+                          new Date(apiKey.lastUsedAt).toLocaleDateString()
                         ) : (
                           <span className="text-muted-foreground">Never</span>
                         )}
