@@ -31,7 +31,7 @@ export const InternationalPhoneInput: React.FC<InternationalPhoneInputProps> = (
           onChange(phone, valid, phone);
         }}
         initOptions={{
-          initialCountry: "us",
+          initialCountry: "in",
           utilsScript:
             "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js",
         } as any} // 👈 cast so TS accepts utilsScript
@@ -40,7 +40,7 @@ export const InternationalPhoneInput: React.FC<InternationalPhoneInputProps> = (
           required: required,
           className: "phone-number auth-input",
           style: { maxWidth: 250 },
-          placeholder: "+1 (555) 123-4567"
+          placeholder: "+91 9876543210"
         }}
       />
     </div>
