@@ -1,26 +1,26 @@
 /* Authentication Page Styles */
 :root {
-  --auth-bg-color: #fff;
-  --auth-card-bg: #fff;
-  --auth-input-bg: #fff;
-  --auth-border: #323232;
-  --auth-text: #323232;
-  --auth-text-muted: #666;
-  --auth-shadow: #323232;
-  --auth-focus: #666;
-  --auth-hover: #666;
+  --auth-bg-color: #000000;
+  --auth-card-bg: #1a1a1a;
+  --auth-input-bg: #2a2a2a;
+  --auth-border: #404040;
+  --auth-text: #ffffff;
+  --auth-text-muted: #ffffff;
+  --auth-shadow: #404040;
+  --auth-focus: #666666;
+  --auth-hover: #555555;
 }
 
 .dark {
-  --auth-bg-color: #fff;
-  --auth-card-bg: #fff;
-  --auth-input-bg: #fff;
-  --auth-border: #323232;
-  --auth-text: #323232;
-  --auth-text-muted: #666;
-  --auth-shadow: #323232;
-  --auth-focus: #666;
-  --auth-hover: #666;
+  --auth-bg-color: #000000;
+  --auth-card-bg: #1a1a1a;
+  --auth-input-bg: #2a2a2a;
+  --auth-border: #404040;
+  --auth-text: #ffffff;
+  --auth-text-muted: #ffffff;
+  --auth-shadow: #404040;
+  --auth-focus: #666666;
+  --auth-hover: #555555;
 }
 
 .auth-container {
@@ -50,7 +50,7 @@
 .auth-title {
   font-size: 25px;
   font-weight: 900;
-  color: var(--auth-border);
+  color: var(--auth-text);
   margin: 20px 0;
 }
 
@@ -72,7 +72,7 @@
   justify-content: space-between;
 }
 
-.auth-row--double > * {
+.auth-row--double>* {
   flex: 1;
   max-width: 250px;
 }
@@ -272,7 +272,7 @@
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  color: var(--auth-text-muted);
+  color: #ffffff;
   z-index: 1;
   pointer-events: none;
 }
@@ -288,7 +288,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: var(--auth-text-muted);
+  color: #ffffff;
   cursor: pointer;
   padding: 4px;
   z-index: 1;
@@ -298,7 +298,7 @@
 }
 
 .password-toggle:hover {
-  color: var(--auth-text);
+  color: #cccccc;
 }
 
 .auth-input.error {
@@ -324,7 +324,7 @@
   .auth-container {
     padding: 12px;
   }
-  
+
   .auth-card {
     max-width: 98vw;
     min-width: 0;
@@ -338,7 +338,7 @@
     flex-direction: column;
   }
 
-  .auth-row--double > * {
+  .auth-row--double>* {
     max-width: none;
   }
 
