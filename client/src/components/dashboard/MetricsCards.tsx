@@ -18,18 +18,18 @@ function MetricCard({ title, value, change, changeType, icon, iconBgColor }: Met
   return (
     <Card className="bg-card dark:bg-card border-border dark:border-border">
       <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground dark:text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold text-card-foreground dark:text-card-foreground" data-testid={`metric-${title.toLowerCase().replace(/\s+/g, '-')}`}>
+        <div className="flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-muted-foreground dark:text-muted-foreground mb-2 leading-tight">{title}</p>
+            <p className="text-2xl font-bold text-card-foreground dark:text-card-foreground mb-2" data-testid={`metric-${title.toLowerCase().replace(/\s+/g, '-')}`}>
               {value}
             </p>
-            <p className={`text-xs mt-1 ${trendColor}`}>
-              <TrendIcon className="inline w-3 h-3 mr-1" />
+            <p className={`text-xs ${trendColor} flex items-center`}>
+              <TrendIcon className="w-3 h-3 mr-1" />
               {change}
             </p>
           </div>
-          <div className={`w-12 h-12 ${iconBgColor} rounded-lg flex items-center justify-center`}>
+          <div className={`w-12 h-12 ${iconBgColor} rounded-lg flex items-center justify-center ml-4 flex-shrink-0`}>
             {icon}
           </div>
         </div>
