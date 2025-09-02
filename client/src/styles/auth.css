@@ -43,7 +43,7 @@
   background: var(--auth-card-bg);
   border: 2px solid var(--auth-border);
   border-radius: 5px;
-  box-shadow: 4px 4px #ffffff;
+  box-shadow: 4px 4px var(--auth-shadow);
   color: var(--auth-text);
 }
 
