@@ -1,0 +1,293 @@
+
+
+const App = () => {
+  const [showSignIn, setShowSignIn] = useState(false);
+  const [phone, setPhone] = useState("");
+  const [isValid, setIsValid] = useState(false);
+  const [country, setCountry] = useState("");
+  const [business, setBusiness] = useState("");
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "var(--bg-color)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        fontFamily: "'Fredoka One', cursive, sans-serif",
+      }}
+    >
+      <style>{`
+        :root {
+          --input-focus: #666;
+          --font-color: #323232;
+          --font-color-sub: #666;
+          --bg-color: #fff;
+          --bg-color-alt: #666;
+          --main-color: #323232;
+        }
+        .flip-card__back {
+          width: 550px;
+          min-width: 320px;
+          max-width: 95vw;
+          height: auto;
+          padding: 20px 18px;
+          position: relative;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          background: var(--bg-color);
+          gap: 16px;
+          border-radius: 5px;
+          border: 2px solid var(--main-color);
+          box-shadow: 4px 4px var(--main-color);
+          color: var(--font-color);
+          box-sizing: border-box;
+          margin: 0 auto;
+        }
+        .title {
+          margin: 20px 0;
+          font-size: 25px;
+          font-weight: 900;
+          text-align: center;
+          color: var(--main-color);
+        }
+        form {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          width: 100%;
+        }
+        .row-top {
+          display: flex;
+          gap: 12px;
+          justify-content: center;
+          width: 100%;
+        }
+        .phone-country-row {
+          display: flex;
+          gap: 12px;
+          justify-content: center;
+          width: 100%;
+          align-items: center;
+        }
+        .flip-card__input, .phone-number {
+          height: 40px;
+          border-radius: 5px;
+          border: 2px solid var(--main-color);
+          background-color: var(--bg-color);
+          box-shadow: 4px 4px var(--main-color);
+          font-size: 15px;
+          font-weight: 600;
+          color: var(--font-color);
+          padding: 5px 10px;
+          outline: none;
+          box-sizing: border-box;
+          flex: 1;
+          min-width: 0;
+          max-width: 250px;
+        }
+        .flip-card__input::placeholder, .phone-number::placeholder {
+          color: var(--font-color-sub);
+          opacity: 0.8;
+        }
+        .flip-card__input:focus, .phone-number:focus {
+          border: 2px solid var(--input-focus);
+          outline: none;
+        }
+        .button-confirm {
+          margin: 18px auto 6px auto;
+          width: 120px;
+          height: 40px;
+          border-radius: 5px;
+          border: 2px solid var(--main-color);
+          background-color: var(--bg-color);
+          box-shadow: 4px 4px var(--main-color);
+          font-size: 17px;
+          font-weight: 600;
+          color: var(--font-color);
+          cursor: pointer;
+          display: block;
+          transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .button-confirm:active {
+          box-shadow: 0 0 var(--main-color);
+          transform: translate(3px, 3px);
+        }
+        .signin-signup-link {
+          text-align: center;
+          margin-top: 2px;
+          margin-bottom: 2px;
+          font-size: 16px;
+        }
+        .signin-signup-link span {
+          color: #666;
+          font-weight: 700;
+          cursor: pointer;
+          text-decoration: underline;
+        }
+        @media (max-width: 700px) {
+          .flip-card__back {
+            width: 98vw;
+            min-width: 0;
+            padding: 12px;
+          }
+          .button-confirm {
+            width: 100%;
+          }
+        }
+      `}</style>
+      {!showSignIn ? (
+        <div className="flip-card__back" role="region" aria-label="Sign up form" id="signup-form">
+          <h1 className="title">Sign up</h1>
+          <form>
+            <div className="row-top">
+              <input
+                type="text"
+                placeholder="First Name"
+                className="flip-card__input"
+                required
+              />
+              <input
+                type="text"
+                placeholder="Last Name"
+                className="flip-card__input"
+                required
+              />
+            </div>
+            <div className="row-top">
+              <input
+                type="text"
+                placeholder="Company Name"
+                className="flip-card__input"
+                required
+                style={{ maxWidth: 250 }}
+              />
+              <input
+                type="text"
+                placeholder="Job Title"
+                className="flip-card__input"
+                required
+                style={{ maxWidth: 250 }}
+              />
+            </div>
+            <div className="row-top">
+              <input
+                type="email"
+                placeholder="Email"
+                className="flip-card__input"
+                required
+                style={{ maxWidth: 250 }}
+              />
+              <IntlTelInput
+                initialValue={phone}
+                onChangeNumber={(num) => {
+                  // Allow optional "+" at start
+                  const formatted = num.replace(/(?!^\+)\D/g, "");
+                  setPhone(formatted);
+                }}
+                onChangeValidity={setIsValid}
+                initOptions={{
+                  initialCountry: "in",
+                  utilsScript:
+                    "https://cdn.jsdelivr.net/npm/intl-tel-input@19.5.6/build/js/utils.js",
+                } as any} // 👈 cast so TS accepts utilsScript
+                inputProps={{
+                  name: "phone",
+                  required: true,
+                  className: "phone-number",
+                  style: { maxWidth: 250 },
+                  placeholder: "+91 9876543210",
+                }}
+              />
+            </div>
+            <div className="row-top">
+              <input
+                type="password"
+                placeholder="Password"
+                className="flip-card__input"
+                required
+                style={{ maxWidth: 250 }}
+              />
+              <input
+                type="password"
+                placeholder="Confirm password"
+                className="flip-card__input"
+                required
+                style={{ maxWidth: 250 }}
+              />
+            </div>
+            <div className="phone-country-row" aria-label="Country and business type selection">
+              <CustomDropdown
+                options={[
+                  { value: "", label: "Select country" },
+                  ...COUNTRIES.map((c) => ({
+                    value: c.code,
+                    label: c.name,
+                  })),
+                ]}
+                placeholder="Select country"
+                value={country}
+                onChange={setCountry}
+                required
+              />
+              <CustomDropdown
+                options={[
+                  { value: "", label: "Select business type" },
+                  ...BUSINESS_TYPES.map((b) => ({
+                    value: b.toLowerCase().replace(/\s+/g, "-"),
+                    label: b,
+                  })),
+                ]}
+                placeholder="Select business type"
+                value={business}
+                onChange={setBusiness}
+                required
+              />
+            </div>
+            <button type="submit" className="button-confirm" disabled={!isValid}>
+              Confirm!
+            </button>
+          </form>
+          <div className="signin-signup-link">
+            Existing user? <span onClick={() => setShowSignIn(true)}>Sign in</span>
+          </div>
+        </div>
+      ) : (
+        <div className="flip-card__back" role="region" aria-label="Sign in form" id="signin-form">
+          <h1 className="title">Sign in</h1>
+          <form>
+            <div className="row-top">
+              <input
+                type="email"
+                placeholder="Email"
+                className="flip-card__input"
+                required
+                style={{ maxWidth: 250 }}
+              />
+            </div>
+            <div className="row-top">
+              <input
+                type="password"
+                placeholder="Password"
+                className="flip-card__input"
+                required
+                style={{ maxWidth: 250 }}
+              />
+            </div>
+            <button type="submit" className="button-confirm">
+              Let's go
+            </button>
+          </form>
+          <div className="signin-signup-link">
+            New user? <span onClick={() => setShowSignIn(false)}>Sign up</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default App;

@@ -1,26 +1,26 @@
 /* Authentication Page Styles */
 :root {
-  --auth-bg-color: #ffffff;
-  --auth-card-bg: #ffffff;
-  --auth-input-bg: #ffffff;
+  --auth-bg-color: #fff;
+  --auth-card-bg: #fff;
+  --auth-input-bg: #fff;
   --auth-border: #323232;
   --auth-text: #323232;
-  --auth-text-muted: #666666;
+  --auth-text-muted: #666;
   --auth-shadow: #323232;
-  --auth-focus: #666666;
-  --auth-hover: #666666;
+  --auth-focus: #666;
+  --auth-hover: #666;
 }
 
 .dark {
-  --auth-bg-color: #0c0c0c;
-  --auth-card-bg: #1a1a1a;
-  --auth-input-bg: #1a1a1a;
-  --auth-border: #404040;
-  --auth-text: #ffffff;
-  --auth-text-muted: #a1a1aa;
-  --auth-shadow: #404040;
-  --auth-focus: #a1a1aa;
-  --auth-hover: #525252;
+  --auth-bg-color: #fff;
+  --auth-card-bg: #fff;
+  --auth-input-bg: #fff;
+  --auth-border: #323232;
+  --auth-text: #323232;
+  --auth-text-muted: #666;
+  --auth-shadow: #323232;
+  --auth-focus: #666;
+  --auth-hover: #666;
 }
 
 .auth-container {
