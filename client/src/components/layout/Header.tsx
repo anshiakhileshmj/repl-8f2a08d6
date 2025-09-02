@@ -1,7 +1,7 @@
-import { Menu, Search, Bell } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { NotificationPopover } from "@/components/NotificationPopover";
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void;
@@ -40,20 +40,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           </div>
           
           {/* Notifications */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="relative p-2"
-            data-testid="notifications-button"
-          >
-            <Bell className="text-card-foreground dark:text-card-foreground w-5 h-5" />
-            <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 w-4 h-4 text-xs rounded-full flex items-center justify-center p-0"
-            >
-              3
-            </Badge>
-          </Button>
+          <NotificationPopover />
         </div>
       </div>
     </header>
