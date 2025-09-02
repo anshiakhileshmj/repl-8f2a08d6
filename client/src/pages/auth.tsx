@@ -48,11 +48,20 @@ const BUSINESS_TYPES = [
 ];
 
 export default function AuthPage() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [match] = useRoute('/auth/:mode');
-  const mode = (match?.mode as 'signin' | 'signup') || 'signin';
+  
+  // Extract mode from the URL path directly as a fallback
+  const extractedMode = location.includes('/signup') ? 'signup' : 'signin';
+  const mode = (match?.mode as 'signin' | 'signup') || extractedMode;
+  
   const { toast } = useToast();
   const { signIn, signUp, isLoading: authLoading } = useAuthState();
+
+  // Debug logging
+  console.log('Current location:', location);
+  console.log('Route match:', match);
+  console.log('Current mode:', mode);
 
   // Sign In Form State
   const [signInData, setSignInData] = useState({
