@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { NotificationPopover } from "@/components/NotificationPopover";
 import { useAuthState } from "@/hooks/useAuthState";
 import { useToast } from "@/hooks/use-toast";
+import { useLocation } from "wouter";
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void;
@@ -12,6 +13,7 @@ interface HeaderProps {
 export function Header({ onMobileMenuToggle }: HeaderProps) {
   const { signOut } = useAuthState();
   const { toast } = useToast();
+  const [, setLocation] = useLocation();
 
   const handleSignOut = () => {
     signOut();
@@ -19,6 +21,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
       title: "Signed out",
       description: "You have been successfully signed out.",
     });
+    setLocation('/auth/signin');
   };
 
   return (
