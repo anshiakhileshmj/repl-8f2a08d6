@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { User, Mail, Phone, Building, MapPin, Calendar, Shield, Key, Save, Camera } from "lucide-react";
+import { useState, useRef } from "react";
+import { User, Mail, Phone, Building, MapPin, Calendar, Shield, Key, Save, Camera, CheckCircle, XCircle, Clock } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,22 +13,29 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState({
-    fullName: "John Doe",
-    email: "john.doe@fintech.com",
-    phone: "+1 (555) 123-4567",
-    company: "FinTech Solutions Inc.",
-    jobTitle: "Chief Compliance Officer",
-    department: "Risk & Compliance",
-    location: "New York, NY",
-    bio: "Experienced compliance professional with 10+ years in financial services and AML operations.",
-    website: "https://fintechsolutions.com",
-    linkedin: "linkedin.com/in/johndoe",
-    joinedDate: "2023-03-15",
-    lastLogin: "2024-01-14T10:30:00Z",
-    twoFactorEnabled: true,
+    firstName: "",
+    lastName: "",
+    fullName: "",
+    email: "",
+    phone: "",
+    company: "",
+    jobTitle: "",
+    department: "",
+    location: "",
+    bio: "",
+    website: "",
+    linkedin: "",
+    profileImageUrl: "",
+    country: "",
+    businessType: "",
+    joinedDate: new Date().toISOString().split('T')[0],
+    lastLogin: new Date().toISOString(),
+    twoFactorEnabled: false,
     emailVerified: true,
     phoneVerified: false,
   });
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { toast } = useToast();
 
@@ -48,11 +55,42 @@ export default function ProfilePage() {
   };
 
   const handleAvatarUpload = () => {
-    // Simulate avatar upload
-    toast({
-      title: "Avatar Upload",
-      description: "Avatar upload functionality would be implemented here.",
-    });
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload a JPG, JPEG, or PNG image.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload an image smaller than 5MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create preview URL
+      const previewUrl = URL.createObjectURL(file);
+      setProfile(prev => ({ ...prev, profileImageUrl: previewUrl }));
+      
+      toast({
+        title: "Profile photo updated",
+        description: "Your profile photo has been updated successfully.",
+      });
+    }
   };
 
   const getInitials = (name: string) => {

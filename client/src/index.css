@@ -1,5 +1,6 @@
 /* Import authentication styles */
 @import './styles/auth.css';
+@import './styles/phone-input.css';
 
 @tailwind base;
 @tailwind components;

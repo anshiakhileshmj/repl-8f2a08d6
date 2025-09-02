@@ -4,9 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { CustomDropdown } from '@/components/auth/CustomDropdown';
-import { PhoneInput } from '@/components/auth/PhoneInput';
+import { InternationalPhoneInput } from '@/components/auth/InternationalPhoneInput';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthState } from '@/hooks/useAuthState';
+import { Mail, Lock, User, Building, Briefcase, Eye, EyeOff } from 'lucide-react';
 
 const COUNTRIES = [
   { code: "af", name: "Afghanistan" },
@@ -58,10 +59,18 @@ export default function AuthPage() {
   const { toast } = useToast();
   const { signIn, signUp, isLoading: authLoading } = useAuthState();
 
-  // Debug logging
-  console.log('Current location:', location);
-  console.log('Route match:', match);
-  console.log('Current mode:', mode);
+  // Password validation function
+  const validatePassword = (password: string): string[] => {
+    const errors: string[] = [];
+    if (password.length < 6) errors.push('Password must be at least 6 characters');
+    if (password.length > 15) errors.push('Password must be no more than 15 characters');
+    return errors;
+  };
+
+  const handlePasswordChange = (password: string) => {
+    setSignUpData(prev => ({ ...prev, password }));
+    setPasswordErrors(validatePassword(password));
+  };
 
   // Sign In Form State
   const [signInData, setSignInData] = useState({
@@ -84,6 +93,9 @@ export default function AuthPage() {
   });
 
   const [phoneValid, setPhoneValid] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordErrors, setPasswordErrors] = useState<string[]>([]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +122,15 @@ export default function AuthPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (passwordErrors.length > 0) {
+      toast({
+        title: "Invalid password",
+        description: passwordErrors[0],
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (signUpData.password !== signUpData.confirmPassword) {
       toast({
         title: "Password mismatch",
@@ -164,26 +185,32 @@ export default function AuthPage() {
             {mode === 'signin' ? (
               <form onSubmit={handleSignIn} className="auth-form">
                 <div className="auth-row">
-                  <Input
-                    type="email"
-                    placeholder="Email"
-                    value={signInData.email}
-                    onChange={(e) => setSignInData(prev => ({ ...prev, email: e.target.value }))}
-                    className="auth-input"
-                    required
-                    data-testid="input-signin-email"
-                  />
+                  <div className="input-with-icon">
+                    <Mail className="input-icon" />
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      value={signInData.email}
+                      onChange={(e) => setSignInData(prev => ({ ...prev, email: e.target.value }))}
+                      className="auth-input auth-input-with-icon"
+                      required
+                      data-testid="input-signin-email"
+                    />
+                  </div>
                 </div>
                 <div className="auth-row">
-                  <Input
-                    type="password"
-                    placeholder="Password"
-                    value={signInData.password}
-                    onChange={(e) => setSignInData(prev => ({ ...prev, password: e.target.value }))}
-                    className="auth-input"
-                    required
-                    data-testid="input-signin-password"
-                  />
+                  <div className="input-with-icon">
+                    <Lock className="input-icon" />
+                    <Input
+                      type="password"
+                      placeholder="Password"
+                      value={signInData.password}
+                      onChange={(e) => setSignInData(prev => ({ ...prev, password: e.target.value }))}
+                      className="auth-input auth-input-with-icon"
+                      required
+                      data-testid="input-signin-password"
+                    />
+                  </div>
                 </div>
                 <Button 
                   type="submit" 
@@ -197,84 +224,135 @@ export default function AuthPage() {
             ) : (
               <form onSubmit={handleSignUp} className="auth-form">
                 <div className="auth-row auth-row--double">
-                  <Input
-                    type="text"
-                    placeholder="First Name"
-                    value={signUpData.firstName}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, firstName: e.target.value }))}
-                    className="auth-input"
-                    required
-                    data-testid="input-first-name"
-                  />
-                  <Input
-                    type="text"
-                    placeholder="Last Name"
-                    value={signUpData.lastName}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, lastName: e.target.value }))}
-                    className="auth-input"
-                    required
-                    data-testid="input-last-name"
-                  />
+                  <div className="input-with-icon">
+                    <User className="input-icon" />
+                    <Input
+                      type="text"
+                      placeholder="First Name"
+                      value={signUpData.firstName}
+                      onChange={(e) => setSignUpData(prev => ({ ...prev, firstName: e.target.value }))}
+                      className="auth-input auth-input-with-icon"
+                      required
+                      data-testid="input-first-name"
+                    />
+                  </div>
+                  <div className="input-with-icon">
+                    <User className="input-icon" />
+                    <Input
+                      type="text"
+                      placeholder="Last Name"
+                      value={signUpData.lastName}
+                      onChange={(e) => setSignUpData(prev => ({ ...prev, lastName: e.target.value }))}
+                      className="auth-input auth-input-with-icon"
+                      required
+                      data-testid="input-last-name"
+                    />
+                  </div>
                 </div>
                 <div className="auth-row auth-row--double">
-                  <Input
-                    type="text"
-                    placeholder="Company Name"
-                    value={signUpData.companyName}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, companyName: e.target.value }))}
-                    className="auth-input"
-                    required
-                    data-testid="input-company"
-                  />
-                  <Input
-                    type="text"
-                    placeholder="Job Title"
-                    value={signUpData.jobTitle}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, jobTitle: e.target.value }))}
-                    className="auth-input"
-                    required
-                    data-testid="input-job-title"
-                  />
+                  <div className="input-with-icon">
+                    <Building className="input-icon" />
+                    <Input
+                      type="text"
+                      placeholder="Company Name"
+                      value={signUpData.companyName}
+                      onChange={(e) => setSignUpData(prev => ({ ...prev, companyName: e.target.value }))}
+                      className="auth-input auth-input-with-icon"
+                      required
+                      data-testid="input-company"
+                    />
+                  </div>
+                  <div className="input-with-icon">
+                    <Briefcase className="input-icon" />
+                    <Input
+                      type="text"
+                      placeholder="Job Title"
+                      value={signUpData.jobTitle}
+                      onChange={(e) => setSignUpData(prev => ({ ...prev, jobTitle: e.target.value }))}
+                      className="auth-input auth-input-with-icon"
+                      required
+                      data-testid="input-job-title"
+                    />
+                  </div>
                 </div>
                 <div className="auth-row auth-row--double">
-                  <Input
-                    type="email"
-                    placeholder="Email"
-                    value={signUpData.email}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
-                    className="auth-input"
-                    required
-                    data-testid="input-email"
-                  />
-                  <PhoneInput
+                  <div className="input-with-icon">
+                    <Mail className="input-icon" />
+                    <Input
+                      type="email"
+                      placeholder="Email"
+                      value={signUpData.email}
+                      onChange={(e) => setSignUpData(prev => ({ ...prev, email: e.target.value }))}
+                      className="auth-input auth-input-with-icon"
+                      required
+                      data-testid="input-email"
+                    />
+                  </div>
+                  <InternationalPhoneInput
                     value={signUpData.phone}
-                    onChange={(value, isValid) => {
-                      setSignUpData(prev => ({ ...prev, phone: value }));
+                    onChange={(value, isValid, formatted) => {
+                      setSignUpData(prev => ({ ...prev, phone: formatted }));
                       setPhoneValid(isValid);
                     }}
                     required
                   />
                 </div>
                 <div className="auth-row auth-row--double">
-                  <Input
-                    type="password"
-                    placeholder="Password"
-                    value={signUpData.password}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, password: e.target.value }))}
-                    className="auth-input"
-                    required
-                    data-testid="input-password"
-                  />
-                  <Input
-                    type="password"
-                    placeholder="Confirm Password"
-                    value={signUpData.confirmPassword}
-                    onChange={(e) => setSignUpData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                    className="auth-input"
-                    required
-                    data-testid="input-confirm-password"
-                  />
+                  <div className="input-with-icon">
+                    <Lock className="input-icon" />
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Password (6-15 chars)"
+                      value={signUpData.password}
+                      onChange={(e) => handlePasswordChange(e.target.value)}
+                      className={`auth-input auth-input-with-icon ${passwordErrors.length > 0 ? 'error' : ''}`}
+                      required
+                      maxLength={15}
+                      data-testid="input-password"
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowPassword(!showPassword)}
+                      data-testid="toggle-password"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <div className="input-with-icon">
+                    <Lock className="input-icon" />
+                    <Input
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm Password"
+                      value={signUpData.confirmPassword}
+                      onChange={(e) => setSignUpData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                      className={`auth-input auth-input-with-icon ${signUpData.password !== signUpData.confirmPassword && signUpData.confirmPassword ? 'error' : ''}`}
+                      required
+                      maxLength={15}
+                      data-testid="input-confirm-password"
+                    />
+                    <button
+                      type="button"
+                      className="password-toggle"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      data-testid="toggle-confirm-password"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
                 </div>
+                {passwordErrors.length > 0 && (
+                  <div className="password-errors">
+                    {passwordErrors.map((error, index) => (
+                      <p key={index} className="error-text">{error}</p>
+                    ))}
+                  </div>
+                )}
+                {signUpData.password !== signUpData.confirmPassword && signUpData.confirmPassword && (
+                  <div className="password-errors">
+                    <p className="error-text">Passwords do not match</p>
+                  </div>
+                )}
                 <div className="auth-row auth-row--double">
                   <CustomDropdown
                     options={[

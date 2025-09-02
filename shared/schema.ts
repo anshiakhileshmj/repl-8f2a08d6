@@ -5,14 +5,29 @@ import { z } from "zod";
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+  username: text("username"),
+  password: text("password"),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
   fullName: text("full_name").notNull(),
   email: text("email").notNull().unique(),
   phone: text("phone"),
   company: text("company"),
   jobTitle: text("job_title"),
+  department: text("department"),
+  location: text("location"),
+  bio: text("bio"),
+  website: text("website"),
+  linkedin: text("linkedin"),
+  profileImageUrl: text("profile_image_url"),
+  country: text("country"),
+  businessType: text("business_type"),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false),
+  emailVerified: boolean("email_verified").default(false),
+  phoneVerified: boolean("phone_verified").default(false),
+  lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const transactions = pgTable("transactions", {
@@ -254,3 +269,41 @@ export type InsertBillingHistory = z.infer<typeof insertBillingHistorySchema>;
 
 export type Subscription = typeof subscriptions.$inferSelect;
 export type InsertSubscription = z.infer<typeof insertSubscriptionSchema>;
+
+// Auth and profile schemas
+export const signUpSchema = z.object({
+  firstName: z.string().min(1, "First name is required"),
+  lastName: z.string().min(1, "Last name is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(1, "Phone number is required"),
+  company: z.string().min(1, "Company name is required"),
+  jobTitle: z.string().min(1, "Job title is required"),
+  country: z.string().min(1, "Country is required"),
+  businessType: z.string().min(1, "Business type is required"),
+  password: z.string().min(6, "Password must be at least 6 characters").max(15, "Password must be no more than 15 characters"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+export const updateProfileSchema = z.object({
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  fullName: z.string().optional(),
+  email: z.string().email().optional(),
+  phone: z.string().optional(),
+  company: z.string().optional(),
+  jobTitle: z.string().optional(),
+  department: z.string().optional(),
+  location: z.string().optional(),
+  bio: z.string().optional(),
+  website: z.string().url().optional().or(z.literal("")),
+  linkedin: z.string().optional(),
+  profileImageUrl: z.string().optional(),
+  country: z.string().optional(),
+  businessType: z.string().optional(),
+});
+
+export type SignUpInput = z.infer<typeof signUpSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
