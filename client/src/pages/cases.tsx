@@ -71,8 +71,7 @@ export default function CasesPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Case Management</h1>
-            <p className="text-muted-foreground">Investigate and manage compliance cases</p>
+            <h1 className="text-2xl font-semibold tracking-tight">Cases</h1>
           </div>
           <div className="flex items-center space-x-2">
             <Button data-testid="button-create-case">
@@ -186,8 +185,7 @@ export default function CasesPage() {
         {/* Cases Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Investigation Cases</CardTitle>
-            <CardDescription>Active compliance investigations and case tracking</CardDescription>
+            <CardTitle>Active Cases</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>

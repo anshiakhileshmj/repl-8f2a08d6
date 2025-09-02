@@ -63,8 +63,7 @@ export default function ReportsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Compliance Reports</h1>
-            <p className="text-muted-foreground">Generate and manage regulatory compliance reports</p>
+            <h1 className="text-2xl font-semibold tracking-tight">Reports</h1>
           </div>
           <div className="flex items-center space-x-2">
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -213,8 +212,7 @@ export default function ReportsPage() {
         {/* Reports Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Generated Reports</CardTitle>
-            <CardDescription>Compliance reports and regulatory submissions</CardDescription>
+            <CardTitle>Reports</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>

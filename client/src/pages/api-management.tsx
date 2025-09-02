@@ -140,8 +140,7 @@ export default function ApiManagementPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">API Management</h1>
-            <p className="text-muted-foreground">Create and manage API keys for AML services</p>
+            <h1 className="text-2xl font-semibold tracking-tight">API Keys</h1>
           </div>
           <div className="flex items-center space-x-2">
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -327,8 +326,7 @@ export default function ApiManagementPage() {
         {/* API Keys Table */}
         <Card>
           <CardHeader>
-            <CardTitle>API Keys</CardTitle>
-            <CardDescription>Manage your API keys for AML service integration</CardDescription>
+            <CardTitle>Keys</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
@@ -462,8 +460,7 @@ export default function ApiManagementPage() {
         {/* API Documentation */}
         <Card>
           <CardHeader>
-            <CardTitle>API Endpoints</CardTitle>
-            <CardDescription>Available AML API endpoints for integration</CardDescription>
+            <CardTitle>Endpoints</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

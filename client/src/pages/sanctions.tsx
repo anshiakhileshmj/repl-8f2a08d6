@@ -132,8 +132,7 @@ export default function SanctionsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Sanctions & PEP</h1>
-            <p className="text-muted-foreground">Manage sanctions lists and politically exposed persons</p>
+            <h1 className="text-2xl font-semibold tracking-tight">Sanctions</h1>
           </div>
           <div className="flex items-center space-x-2">
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -296,8 +295,7 @@ export default function SanctionsPage() {
         {/* Sanctioned Wallets Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Sanctioned Wallet Addresses</CardTitle>
-            <CardDescription>Blocked addresses from various sanctions lists</CardDescription>
+            <CardTitle>Sanctioned Addresses</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>

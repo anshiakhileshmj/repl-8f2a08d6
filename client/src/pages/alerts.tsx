@@ -63,8 +63,7 @@ export default function AlertsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Alerts</h1>
-            <p className="text-muted-foreground">Monitor and manage compliance alerts</p>
+            <h1 className="text-2xl font-semibold tracking-tight">Alerts</h1>
           </div>
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm" data-testid="button-mark-all-read">

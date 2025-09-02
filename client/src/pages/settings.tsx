@@ -65,8 +65,7 @@ export default function SettingsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-            <p className="text-muted-foreground">Configure your AML dashboard preferences</p>
+            <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
           </div>
           <Button onClick={handleSaveSettings} data-testid="button-save-settings">
             <Save className="w-4 h-4 mr-2" />
@@ -79,9 +78,8 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Bell className="w-5 h-5 mr-2" />
-              Notification Settings
+              Notifications
             </CardTitle>
-            <CardDescription>Configure how you receive alerts and notifications</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
@@ -142,9 +140,8 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Shield className="w-5 h-5 mr-2" />
-              Security Settings
+              Security
             </CardTitle>
-            <CardDescription>Manage account security and access controls</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
@@ -190,9 +187,8 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Settings className="w-5 h-5 mr-2" />
-              API Settings
+              API
             </CardTitle>
-            <CardDescription>Configure API behavior and integration settings</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -241,9 +237,8 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Shield className="w-5 h-5 mr-2" />
-              Compliance Settings
+              Compliance
             </CardTitle>
-            <CardDescription>Configure automated compliance monitoring</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">

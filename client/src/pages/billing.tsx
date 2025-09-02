@@ -123,8 +123,7 @@ export default function BillingPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Billing & Subscription</h1>
-            <p className="text-muted-foreground">Manage your subscription and billing information</p>
+            <h1 className="text-2xl font-semibold tracking-tight">Billing</h1>
           </div>
           <Button variant="outline" data-testid="button-billing-portal">
             <CreditCard className="w-4 h-4 mr-2" />

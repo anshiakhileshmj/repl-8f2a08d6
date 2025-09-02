@@ -60,8 +60,7 @@ export default function TransactionsPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
-            <p className="text-muted-foreground">Monitor and analyze transaction flows</p>
+            <h1 className="text-2xl font-semibold tracking-tight">Transactions</h1>
           </div>
           <div className="flex items-center space-x-2">
             <Button variant="outline" size="sm" data-testid="button-export">
@@ -174,8 +173,7 @@ export default function TransactionsPage() {
         {/* Transactions Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Transaction History</CardTitle>
-            <CardDescription>Recent transaction activity and risk assessments</CardDescription>
+            <CardTitle>History</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>

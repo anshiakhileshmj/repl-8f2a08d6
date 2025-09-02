@@ -22,8 +22,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
             <Menu className="text-card-foreground dark:text-card-foreground w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-card-foreground dark:text-card-foreground">AML Compliance Dashboard</h1>
-            <p className="text-sm text-muted-foreground dark:text-muted-foreground">Monitor transactions and manage compliance</p>
+            <h1 className="text-xl font-semibold text-card-foreground dark:text-card-foreground">AML Dashboard</h1>
           </div>
         </div>
 
