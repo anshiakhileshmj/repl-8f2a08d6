@@ -65,6 +65,7 @@
   display: flex;
   width: 100%;
   gap: 12px;
+  justify-content: center;
 }
 
 .auth-row--double {
