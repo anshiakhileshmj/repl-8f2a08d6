@@ -145,7 +145,7 @@
 }
 
 .auth-toggle-link {
-  color: var(--auth-bg-color);
+  color: #ffffff;
   font-weight: 700;
   cursor: pointer;
   text-decoration: underline;
