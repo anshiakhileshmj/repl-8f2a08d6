@@ -63,17 +63,17 @@
 
 .country-dropdown {
   position: absolute;
-  top: 100%;
-  left: -2px;
-  right: -2px;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
   background: var(--auth-input-bg);
   border: 2px solid var(--auth-border);
-  border-top: none;
-  border-radius: 0 0 5px 5px;
+  border-radius: 5px;
   box-shadow: 4px 4px var(--auth-shadow);
-  z-index: 1000;
+  z-index: 9999;
   max-height: 250px;
   overflow: hidden;
+  min-width: 200px;
 }
 
 .search-container {

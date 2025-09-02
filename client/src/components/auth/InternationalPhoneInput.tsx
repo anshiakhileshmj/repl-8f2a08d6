@@ -244,7 +244,11 @@ export const InternationalPhoneInput: React.FC<InternationalPhoneInputProps> = (
         <div 
           ref={dropdownRef}
           className="country-selector"
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsDropdownOpen(!isDropdownOpen);
+          }}
           data-testid="country-selector"
         >
           <span className="country-flag">{selectedCountry.flag}</span>
