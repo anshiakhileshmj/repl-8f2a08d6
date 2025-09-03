@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Layout } from "@/components/layout/Layout";
-import type { Case } from "@shared/schema";
+
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -44,7 +44,7 @@ export default function CasesPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
 
-  const { data: cases, isLoading } = useQuery<Case[]>({
+  const { data: cases, isLoading } = useQuery({
     queryKey: ["/api/cases", { search: searchQuery, status: statusFilter, priority: priorityFilter }],
   });
 

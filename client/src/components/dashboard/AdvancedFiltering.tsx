@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Eye, Flag, MoreHorizontal } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { Transaction } from "@shared/schema";
+
 
 function getRiskColor(riskScore: number) {
   if (riskScore >= 80) return "text-destructive dark:text-destructive";
@@ -33,7 +33,7 @@ export function AdvancedFiltering() {
   const [country, setCountry] = useState("all-countries");
   const [transactionType, setTransactionType] = useState("all-types");
 
-  const { data: transactions, isLoading } = useQuery<Transaction[]>({
+  const { data: transactions, isLoading } = useQuery({
     queryKey: ["/api/transactions", "filtered", { dateRange, riskLevel, country, transactionType }],
     enabled: true,
   });

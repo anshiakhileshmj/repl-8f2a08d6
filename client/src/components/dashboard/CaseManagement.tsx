@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { Case } from "@shared/schema";
+
 
 function getStatusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
   switch (status) {
@@ -32,7 +32,7 @@ function getStatusColor(status: string) {
 }
 
 export function CaseManagement() {
-  const { data: cases, isLoading } = useQuery<Case[]>({
+  const { data: cases, isLoading } = useQuery({
     queryKey: ["/api/cases"],
     enabled: true,
   });

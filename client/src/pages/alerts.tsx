@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Layout } from "@/components/layout/Layout";
-import type { Alert } from "@shared/schema";
+
 
 const getSeverityColor = (severity: string) => {
   switch (severity) {
@@ -35,7 +35,7 @@ export default function AlertsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
 
-  const { data: alerts, isLoading } = useQuery<Alert[]>({
+  const { data: alerts, isLoading } = useQuery({
     queryKey: ["/api/alerts", { search: searchQuery, severity: severityFilter, status: statusFilter, type: typeFilter }],
   });
 

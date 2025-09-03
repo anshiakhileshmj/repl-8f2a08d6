@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, AlertCircle, CheckCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Transaction } from "@shared/schema";
+
 
 function getRiskIcon(riskScore: number) {
   if (riskScore >= 80) return AlertTriangle;
@@ -30,7 +30,7 @@ function getRiskLabel(riskScore: number) {
 }
 
 export function TransactionFeed() {
-  const { data: transactions, isLoading } = useQuery<Transaction[]>({
+  const { data: transactions, isLoading } = useQuery({
     queryKey: ["/api/transactions", "recent"],
     enabled: true,
   });

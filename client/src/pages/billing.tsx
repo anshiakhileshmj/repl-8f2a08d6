@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Layout } from "@/components/layout/Layout";
 import { useToast } from "@/hooks/use-toast";
-import type { BillingHistory, Subscription } from "@shared/schema";
+
 
 const plans = [
   {
@@ -90,11 +90,11 @@ export default function BillingPage() {
   const [currentPlan] = useState("professional");
   const { toast } = useToast();
 
-  const { data: subscription } = useQuery<Subscription>({
+  const { data: subscription } = useQuery({
     queryKey: ["/api/subscription"],
   });
 
-  const { data: billingHistory } = useQuery<BillingHistory[]>({
+  const { data: billingHistory } = useQuery({
     queryKey: ["/api/billing-history"],
   });
 

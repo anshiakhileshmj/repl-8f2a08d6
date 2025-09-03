@@ -13,27 +13,27 @@ import { Switch } from "@/components/ui/switch";
 import { Layout } from "@/components/layout/Layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { ApiKey } from "@shared/schema";
+
 
 export default function ApiManagementPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
   const [newKeyEnvironment, setNewKeyEnvironment] = useState("production");
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
-  const [createdKey, setCreatedKey] = useState<ApiKey | null>(null);
+  const [createdKey, setCreatedKey] = useState<any | null>(null);
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: apiKeys, isLoading } = useQuery<ApiKey[]>({
+  const { data: apiKeys, isLoading } = useQuery({
     queryKey: ["/api/api-keys"],
   });
 
   const createKeyMutation = useMutation({
     mutationFn: (data: { name: string; environment: string }) =>
       apiRequest("POST", "/api/api-keys", data),
-    onSuccess: (newApiKey: ApiKey) => {
+    onSuccess: (newApiKey: any) => {
       queryClient.invalidateQueries({ queryKey: ["/api/api-keys"] });
       setIsCreateDialogOpen(false);
       setNewKeyName("");

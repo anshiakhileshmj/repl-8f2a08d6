@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Layout } from "@/components/layout/Layout";
-import type { Transaction } from "@shared/schema";
+
 
 const getRiskBadgeColor = (score: number) => {
   if (score >= 80) return "destructive";
@@ -31,7 +31,7 @@ export default function TransactionsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [riskFilter, setRiskFilter] = useState("all");
 
-  const { data: transactions, isLoading } = useQuery<Transaction[]>({
+  const { data: transactions, isLoading } = useQuery({
     queryKey: ["/api/transactions", { search: searchQuery, status: statusFilter, risk: riskFilter }],
   });
 

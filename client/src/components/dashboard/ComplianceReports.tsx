@@ -2,10 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FileText, Download, Share } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { ComplianceReport } from "@shared/schema";
+
 
 export function ComplianceReports() {
-  const { data: reports, isLoading } = useQuery<ComplianceReport[]>({
+  const { data: reports, isLoading } = useQuery({
     queryKey: ["/api/reports"],
     enabled: true,
   });

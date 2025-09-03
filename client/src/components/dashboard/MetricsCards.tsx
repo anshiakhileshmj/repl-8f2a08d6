@@ -76,7 +76,7 @@ export function MetricsCards() {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <MetricCard
         title="High Risk Transactions"
-        value={metricsData.highRiskCount}
+        value={metricsData.highRiskCount || defaultMetrics.highRiskCount}
         change="+12% from last week"
         changeType="negative"
         icon={<AlertTriangle className="text-destructive dark:text-destructive w-6 h-6" />}
@@ -85,7 +85,7 @@ export function MetricsCards() {
       
       <MetricCard
         title="Active Cases"
-        value={metricsData.activeCases}
+        value={metricsData.activeCases || defaultMetrics.activeCases}
         change="-3% from last week"
         changeType="positive"
         icon={<FolderOpen className="text-chart-2 dark:text-chart-2 w-6 h-6" />}
@@ -94,7 +94,7 @@ export function MetricsCards() {
       
       <MetricCard
         title="Sanctions Matches"
-        value={metricsData.sanctionsMatches}
+        value={metricsData.sanctionsMatches || defaultMetrics.sanctionsMatches}
         change="+2 new today"
         changeType="negative"
         icon={<ShieldQuestion className="text-chart-3 dark:text-chart-3 w-6 h-6" />}
@@ -103,7 +103,7 @@ export function MetricsCards() {
       
       <MetricCard
         title="API Calls Today"
-        value={metricsData.apiCalls.toLocaleString()}
+        value={(metricsData.apiCalls || defaultMetrics.apiCalls).toLocaleString()}
         change="+18% from yesterday"
         changeType="positive"
         icon={<BarChart3 className="text-chart-1 dark:text-chart-1 w-6 h-6" />}

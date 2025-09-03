@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Layout } from "@/components/layout/Layout";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { SanctionedWallet } from "@shared/schema";
+
 
 const getSourceColor = (source: string) => {
   switch (source) {
@@ -35,7 +35,7 @@ export default function SanctionsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: sanctionedWallets, isLoading } = useQuery<SanctionedWallet[]>({
+  const { data: sanctionedWallets, isLoading } = useQuery({
     queryKey: ["/api/sanctioned-wallets", { search: searchQuery, source: sourceFilter }],
   });
 

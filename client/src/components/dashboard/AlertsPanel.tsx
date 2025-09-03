@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ShieldQuestion, TrendingUp } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Alert } from "@shared/schema";
+
 
 function getAlertIcon(alertType: string) {
   switch (alertType) {
@@ -45,7 +45,7 @@ function getSeverityBgColor(severity: string) {
 }
 
 export function AlertsPanel() {
-  const { data: alerts, isLoading } = useQuery<Alert[]>({
+  const { data: alerts, isLoading } = useQuery({
     queryKey: ["/api/alerts", "critical"],
     enabled: true,
   });

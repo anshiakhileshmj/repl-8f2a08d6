@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Layout } from "@/components/layout/Layout";
-import type { ComplianceReport } from "@shared/schema";
+
 
 const getReportTypeColor = (type: string) => {
   switch (type) {
@@ -39,7 +39,7 @@ export default function ReportsPage() {
   const [newReportType, setNewReportType] = useState("monthly");
   const [newReportTitle, setNewReportTitle] = useState("");
 
-  const { data: reports, isLoading } = useQuery<ComplianceReport[]>({
+  const { data: reports, isLoading } = useQuery({
     queryKey: ["/api/reports", { search: searchQuery, type: typeFilter }],
   });
 

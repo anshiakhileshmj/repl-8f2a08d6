@@ -4,11 +4,10 @@ import { Progress } from "@/components/ui/progress";
 import { Plus, Copy, RotateCcw, Trash2, CheckCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useInlineSection } from "@/hooks/useInlineSection";
-import { ApiKey } from "@shared/schema";
 
 export function ApiManagement() {
   const { isOpen } = useInlineSection();
-  const { data: apiKeys, isLoading } = useQuery<ApiKey[]>({
+  const { data: apiKeys, isLoading } = useQuery({
     queryKey: ["/api/api-keys"],
     enabled: isOpen("api"),
   });
@@ -20,6 +19,7 @@ export function ApiManagement() {
 
   if (!isOpen("api")) return null;
 
+  // Provide default usage data as fallback
   const defaultUsage = {
     callsThisMonth: 1245678,
     limit: 1670000,
@@ -27,8 +27,8 @@ export function ApiManagement() {
     successRate: 99.8,
   };
 
-  const usageData = usage || defaultUsage;
-  const usagePercentage = (usageData.callsThisMonth / usageData.limit) * 100;
+  const currentUsage = usage || defaultUsage;
+  const usagePercentage = (currentUsage.callsThisMonth / currentUsage.limit) * 100;
 
   return (
     <Card className="bg-card dark:bg-card border-border dark:border-border" data-testid="api-management-section">
@@ -65,8 +65,8 @@ export function ApiManagement() {
                     </div>
                   </div>
                 ))
-              ) : apiKeys && apiKeys.length > 0 ? (
-                apiKeys.map((apiKey) => (
+              ) : apiKeys && Array.isArray(apiKeys) && apiKeys.length > 0 ? (
+                apiKeys.map((apiKey: any) => (
                   <div
                     key={apiKey.id}
                     className="p-4 bg-muted/30 dark:bg-muted/30 rounded-lg border border-border dark:border-border"
@@ -75,9 +75,9 @@ export function ApiManagement() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-medium text-card-foreground dark:text-card-foreground">{apiKey.name}</p>
-                        <p className="text-xs text-muted-foreground dark:text-muted-foreground font-mono">{apiKey.keyPreview}</p>
+                        <p className="text-xs text-muted-foreground dark:text-muted-foreground font-mono">{apiKey.key_hash?.substring(0, 8)}...</p>
                         <p className="text-xs text-muted-foreground dark:text-muted-foreground mt-1">
-                          Created: {new Date(apiKey.createdAt!).toLocaleDateString()}
+                          Created: {new Date(apiKey.created_at!).toLocaleDateString()}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -110,12 +110,12 @@ export function ApiManagement() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground dark:text-muted-foreground">API Calls This Month</span>
                   <span className="text-sm font-medium text-card-foreground dark:text-card-foreground" data-testid="api-calls-count">
-                    {usageData.callsThisMonth.toLocaleString()}
+                    {currentUsage.callsThisMonth.toLocaleString()}
                   </span>
                 </div>
                 <Progress value={usagePercentage} className="mb-2" />
                 <p className="text-xs text-muted-foreground dark:text-muted-foreground">
-                  {Math.round(usagePercentage)}% of limit ({usageData.limit.toLocaleString()})
+                  {Math.round(usagePercentage)}% of limit ({currentUsage.limit.toLocaleString()})
                 </p>
               </div>
               
@@ -123,7 +123,7 @@ export function ApiManagement() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground dark:text-muted-foreground">Average Response Time</span>
                   <span className="text-sm font-medium text-card-foreground dark:text-card-foreground" data-testid="avg-response-time">
-                    {usageData.avgResponseTime}ms
+                    {currentUsage.avgResponseTime}ms
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -136,7 +136,7 @@ export function ApiManagement() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground dark:text-muted-foreground">Success Rate</span>
                   <span className="text-sm font-medium text-card-foreground dark:text-card-foreground" data-testid="success-rate">
-                    {usageData.successRate}%
+                    {currentUsage.successRate}%
                   </span>
                 </div>
                 <div className="flex items-center space-x-2">
