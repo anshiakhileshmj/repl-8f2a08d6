@@ -1,10 +1,10 @@
 
 import { Menu, Search, LogOut } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { NotificationPopover } from "@/components/NotificationPopover";
-import { useAuthState } from "@/hooks/useAuthState";
-import { useToast } from "@/hooks/use-toast";
+import { Input } from "../../components/ui/input";
+import { Button } from "../..components/ui/button";
+import { NotificationPopover } from "../../components/NotificationPopover";
+import { useAuthState } from "../../hooks/useAuthState";
+import { useToast } from "../../hooks/use-toast";
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void;
