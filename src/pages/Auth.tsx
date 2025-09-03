@@ -14,14 +14,14 @@ const Auth = () => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: Session | null) => {
       if (session?.user) {
-        setLocation('/');
+        setLocation('/dashboard');
       }
     });
 
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
       if (session?.user) {
-        setLocation('/');
+        setLocation('/dashboard');
       }
     });
 
@@ -53,7 +53,7 @@ const Auth = () => {
           title: "Success!",
           description: "Logged in successfully",
         });
-        setLocation('/');
+        setLocation('/dashboard');
       }
     } catch (error) {
       toast({
@@ -76,7 +76,7 @@ const Auth = () => {
     const password = formData.get('password') as string;
 
     try {
-      const redirectUrl = `${window.location.origin}/`;
+      const redirectUrl = `${window.location.origin}/dashboard`;
       
       const { error } = await supabase.auth.signUp({
         email,
@@ -84,17 +84,25 @@ const Auth = () => {
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            name: name,
+            full_name: name,
           }
         }
       });
 
       if (error) {
-        toast({
-          title: "Sign up failed",
-          description: error.message,
-          variant: "destructive",
-        });
+        if (error.message.includes('already registered')) {
+          toast({
+            title: "Account exists",
+            description: "This email is already registered. Please sign in instead.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Sign up failed",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
       } else {
         toast({
           title: "Success!",

@@ -20,8 +20,8 @@ import Auth from "@/pages/Auth";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
       <Route path="/auth" component={Auth} />
+      <Route path="/dashboard" component={Dashboard} />
       <Route path="/transactions" component={TransactionsPage} />
       <Route path="/alerts" component={AlertsPage} />
       <Route path="/cases" component={CasesPage} />
@@ -31,6 +31,7 @@ function Router() {
       <Route path="/settings" component={SettingsPage} />
       <Route path="/billing" component={BillingPage} />
       <Route path="/profile" component={ProfilePage} />
+      <Route path="/" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
   );
