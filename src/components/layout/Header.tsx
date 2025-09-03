@@ -1,8 +1,7 @@
 import { Menu, Search, Bell } from "lucide-react";
-import { Input } from "../../components/ui/input";
-import { Button } from "../..components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { NotificationPopover } from "../../components/NotificationPopover";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { NotificationPopover } from "@/components/NotificationPopover";
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void;
@@ -42,7 +41,6 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           
           {/* Notifications */}
           <NotificationPopover />
-          </Button>
         </div>
       </div>
     </header>
