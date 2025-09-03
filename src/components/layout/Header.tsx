@@ -1,13 +1,27 @@
-import { Menu, Search, Bell } from "lucide-react";
+
+import { Menu, Search, LogOut } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { NotificationPopover } from "@/components/NotificationPopover";
+import { useAuthState } from "@/hooks/useAuthState";
+import { useToast } from "@/hooks/use-toast";
 
 interface HeaderProps {
   onMobileMenuToggle?: () => void;
 }
 
 export function Header({ onMobileMenuToggle }: HeaderProps) {
+  const { signOut } = useAuthState();
+  const { toast } = useToast();
+
+  const handleSignOut = () => {
+    signOut();
+    toast({
+      title: "Signed out",
+      description: "You have been successfully signed out.",
+    });
+  };
+
   return (
     <header className="bg-card dark:bg-card border-b border-border dark:border-border h-16 px-6">
       <div className="flex items-center justify-between h-full">
@@ -22,8 +36,7 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
             <Menu className="text-card-foreground dark:text-card-foreground w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-card-foreground dark:text-card-foreground">AML Compliance Dashboard</h1>
-            <p className="text-sm text-muted-foreground dark:text-muted-foreground">Monitor transactions and manage compliance</p>
+            <h1 className="text-xl font-semibold text-card-foreground dark:text-card-foreground">AML Dashboard</h1>
           </div>
         </div>
 
@@ -40,19 +53,17 @@ export function Header({ onMobileMenuToggle }: HeaderProps) {
           </div>
           
           {/* Notifications */}
+          <NotificationPopover />
+          
+          {/* Sign Out Button */}
           <Button
             variant="ghost"
             size="sm"
-            className="relative p-2"
-            data-testid="notifications-button"
+            onClick={handleSignOut}
+            className="p-2 text-muted-foreground hover:text-foreground"
+            data-testid="button-signout"
           >
-            <Bell className="text-card-foreground dark:text-card-foreground w-5 h-5" />
-            <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 w-4 h-4 text-xs rounded-full flex items-center justify-center p-0"
-            >
-              3
-            </Badge>
+            <LogOut className="w-4 h-4" />
           </Button>
         </div>
       </div>
