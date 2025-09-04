@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Layout } from "@/components/layout/Layout";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 
 const getRiskBadgeColor = (score: number) => {
@@ -32,7 +34,16 @@ export default function TransactionsPage() {
   const [riskFilter, setRiskFilter] = useState("all");
 
   const { data: transactions = [], isLoading, error } = useQuery({
-    queryKey: ["/api/transactions", { search: searchQuery, status: statusFilter, risk: riskFilter }],
+    queryKey: ["transactions", { search: searchQuery, status: statusFilter, risk: riskFilter }],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('transactions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
     retry: false,
     refetchOnWindowFocus: false,
   });

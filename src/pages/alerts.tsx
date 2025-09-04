@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Layout } from "@/components/layout/Layout";
+import { supabase } from "@/integrations/supabase/client";
 
 
 const getSeverityColor = (severity: string) => {
@@ -36,7 +37,16 @@ export default function AlertsPage() {
   const [typeFilter, setTypeFilter] = useState("all");
 
   const { data: alerts = [], isLoading, error } = useQuery({
-    queryKey: ["/api/alerts", { search: searchQuery, severity: severityFilter, status: statusFilter, type: typeFilter }],
+    queryKey: ["alerts", { search: searchQuery, severity: severityFilter, status: statusFilter, type: typeFilter }],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('alerts')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
     retry: false,
     refetchOnWindowFocus: false,
   });

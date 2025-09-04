@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Layout } from "@/components/layout/Layout";
+import { supabase } from "@/integrations/supabase/client";
 
 
 const getReportTypeColor = (type: string) => {
@@ -40,7 +41,16 @@ export default function ReportsPage() {
   const [newReportTitle, setNewReportTitle] = useState("");
 
   const { data: reports = [], isLoading, error } = useQuery({
-    queryKey: ["/api/reports", { search: searchQuery, type: typeFilter }],
+    queryKey: ["reports", { search: searchQuery, type: typeFilter }],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('reports')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
     retry: false,
     refetchOnWindowFocus: false,
   });

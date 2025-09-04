@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Layout } from "@/components/layout/Layout";
+import { supabase } from "@/integrations/supabase/client";
 
 
 const getStatusColor = (status: string) => {
@@ -45,7 +46,16 @@ export default function CasesPage() {
   const [priorityFilter, setPriorityFilter] = useState("all");
 
   const { data: cases = [], isLoading, error } = useQuery({
-    queryKey: ["/api/cases", { search: searchQuery, status: statusFilter, priority: priorityFilter }],
+    queryKey: ["cases", { search: searchQuery, status: statusFilter, priority: priorityFilter }],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('cases')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
+    },
     retry: false,
     refetchOnWindowFocus: false,
   });
