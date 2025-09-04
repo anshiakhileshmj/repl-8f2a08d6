@@ -90,12 +90,16 @@ export default function BillingPage() {
   const [currentPlan] = useState("professional");
   const { toast } = useToast();
 
-  const { data: subscription } = useQuery({
+  const { data: subscription = {}, isLoading: subscriptionLoading, error: subscriptionError } = useQuery({
     queryKey: ["/api/subscription"],
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
-  const { data: billingHistory } = useQuery({
+  const { data: billingHistory = [], isLoading: billingLoading, error: billingError } = useQuery({
     queryKey: ["/api/billing-history"],
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
   const handlePlanChange = (planId: string) => {

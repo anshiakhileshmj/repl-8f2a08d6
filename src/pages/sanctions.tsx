@@ -35,12 +35,16 @@ export default function SanctionsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: sanctionedWallets, isLoading } = useQuery({
+  const { data: sanctionedWallets = [], isLoading, error } = useQuery({
     queryKey: ["/api/sanctioned-wallets", { search: searchQuery, source: sourceFilter }],
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
-  const { data: pepProfiles } = useQuery({
+  const { data: pepProfiles = [], isLoading: pepLoading, error: pepError } = useQuery({
     queryKey: ["/api/pep-profiles"],
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
   const addSanctionMutation = useMutation({

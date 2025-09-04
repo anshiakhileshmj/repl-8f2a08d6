@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Layout } from "@/components/layout/Layout";
-import { getMockAlerts } from "@/lib/mockData";
 
 
 const getSeverityColor = (severity: string) => {
@@ -36,18 +35,10 @@ export default function AlertsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
 
-  const { data: alerts = [], isLoading } = useQuery({
+  const { data: alerts = [], isLoading, error } = useQuery({
     queryKey: ["/api/alerts", { search: searchQuery, severity: severityFilter, status: statusFilter, type: typeFilter }],
-    queryFn: async () => {
-      try {
-        const response = await fetch("/api/alerts");
-        if (!response.ok) throw new Error("API not available");
-        return await response.json();
-      } catch {
-        // Fallback to mock data when API is not available
-        return getMockAlerts();
-      }
-    },
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
   const filteredAlerts = alerts?.filter(alert => {

@@ -39,8 +39,10 @@ export default function ReportsPage() {
   const [newReportType, setNewReportType] = useState("monthly");
   const [newReportTitle, setNewReportTitle] = useState("");
 
-  const { data: reports, isLoading } = useQuery({
+  const { data: reports = [], isLoading, error } = useQuery({
     queryKey: ["/api/reports", { search: searchQuery, type: typeFilter }],
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
   const filteredReports = reports?.filter(report => {

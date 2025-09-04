@@ -31,8 +31,10 @@ export default function TransactionsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [riskFilter, setRiskFilter] = useState("all");
 
-  const { data: transactions, isLoading } = useQuery({
+  const { data: transactions = [], isLoading, error } = useQuery({
     queryKey: ["/api/transactions", { search: searchQuery, status: statusFilter, risk: riskFilter }],
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
   const filteredTransactions = transactions?.filter(transaction => {

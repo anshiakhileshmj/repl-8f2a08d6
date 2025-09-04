@@ -8,9 +8,11 @@ import { useQuery } from "@tanstack/react-query";
 
 export function Billing() {
   const { isOpen } = useInlineSection();
-  const { data: billingData, isLoading } = useQuery({
+  const { data: billingData = {}, isLoading, error } = useQuery({
     queryKey: ["/api/billing"],
     enabled: isOpen("billing"),
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
   if (!isOpen("billing")) return null;

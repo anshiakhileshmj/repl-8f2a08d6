@@ -44,8 +44,10 @@ export default function CasesPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
 
-  const { data: cases, isLoading } = useQuery({
+  const { data: cases = [], isLoading, error } = useQuery({
     queryKey: ["/api/cases", { search: searchQuery, status: statusFilter, priority: priorityFilter }],
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
   const filteredCases = cases?.filter(caseItem => {
