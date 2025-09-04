@@ -168,131 +168,197 @@ const AuthForm = () => {
         fontFamily: "'Fredoka One', cursive, sans-serif",
       }}
     >
-      <style>{`
-        :root {
-          --input-focus: #666;
-          --font-color: #fefefe;
-          --font-color-sub: #7e7e7e;
-          --bg-color: #111;
-          --bg-color-alt: #666;
-          --main-color: #fefefe;
-        }
-        .flip-card__back {
-          width: 550px;
-          min-width: 320px;
-          max-width: 95vw;
-          height: auto;
-          padding: 20px 18px;
-          position: relative;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          background: var(--bg-color);
-          gap: 16px;
-          border-radius: 5px;
-          border: 2px solid var(--main-color);
-          box-shadow: 4px 4px var(--main-color);
-          color: var(--font-color);
-          box-sizing: border-box;
-          margin: 0 auto;
-        }
-        .title {
-          margin: 20px 0;
-          font-size: 25px;
-          font-weight: 900;
-          text-align: center;
-          color: var(--main-color);
-        }
-        form {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 12px;
-          width: 100%;
-        }
-        .row-top {
-          display: flex;
-          gap: 12px;
-          justify-content: center;
-          width: 100%;
-        }
-        .phone-country-row {
-          display: flex;
-          gap: 12px;
-          justify-content: center;
-          width: 100%;
-          align-items: center;
-        }
-        .flip-card__input, .phone-number {
-          height: 40px;
-          border-radius: 5px;
-          border: 2px solid var(--main-color);
-          background-color: var(--bg-color);
-          box-shadow: 4px 4px var(--main-color);
-          font-size: 15px;
-          font-weight: 600;
-          color: var(--font-color);
-          padding: 5px 10px;
-          outline: none;
-          box-sizing: border-box;
-          flex: 1;
-          min-width: 0;
-          max-width: 250px;
-        }
-        .flip-card__input::placeholder, .phone-number::placeholder {
-          color: var(--font-color-sub);
-          opacity: 0.8;
-        }
-        .flip-card__input:focus, .phone-number:focus {
-          border: 2px solid var(--input-focus);
-          outline: none;
-        }
-        .button-confirm {
-          margin: 18px auto 6px auto;
-          width: 120px;
-          height: 40px;
-          border-radius: 5px;
-          border: 2px solid var(--main-color);
-          background-color: var(--bg-color);
-          box-shadow: 4px 4px var(--main-color);
-          font-size: 17px;
-          font-weight: 600;
-          color: var(--font-color);
-          cursor: pointer;
-          display: block;
-          transition: transform 0.1s, box-shadow 0.1s;
-        }
-        .button-confirm:active {
-          box-shadow: 0 0 var(--main-color);
-          transform: translate(3px, 3px);
-        }
-        .button-confirm:disabled {
-          opacity: 0.6;
-          cursor: not-allowed;
-        }
-        .signin-signup-link {
-          text-align: center;
-          margin-top: 2px;
-          margin-bottom: 2px;
-          font-size: 16px;
-        }
-        .signin-signup-link span {
-          color: #666;
-          font-weight: 700;
-          cursor: pointer;
-          text-decoration: underline;
-        }
-        @media (max-width: 700px) {
-          .flip-card__back {
-            width: 98vw;
-            min-width: 0;
-            padding: 12px;
+   <div
+        style={{
+          backgroundColor: "var(--bg-color)",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+          margin: 0,
+          fontFamily: "'Fredoka One', cursive, sans-serif",
+        }}
+      >
+        <style>{`
+          :root {
+            --input-focus: #666;
+            --font-color: #323232;
+            --font-color-sub: #666;
+            --bg-color: #fff;
+            --bg-color-alt: #666;
+            --main-color: #323232;
           }
-          .button-confirm {
+          body[data-theme="light"] {
+            --input-focus: #666;
+            --font-color: #111;
+            --font-color-sub: #555;
+            --bg-color: #fefefe;
+            --bg-color-alt: #e5e5e5;
+            --main-color: #111;
+          }
+          .flip-card__back {
+            width: 550px;
+            min-width: 320px;
+            max-width: 95vw;
+            height: auto;
+            padding: 20px 18px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: var(--bg-color);
+            gap: 16px;
+            border-radius: 5px;
+            border: 2px solid var(--main-color);
+            box-shadow: 4px 4px var(--main-color);
+            color: var(--font-color);
+            box-sizing: border-box;
+            margin: 0 auto;
+          }
+          .title {
+            margin: 20px 0;
+            font-size: 25px;
+            font-weight: 900;
+            text-align: center;
+            color: var(--main-color);
+          }
+          form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
             width: 100%;
           }
-        }
-      `}</style>
+          .row-top {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+          }
+          .phone-country-row {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+            align-items: center;
+          }
+          .flip-card__input, .phone-number {
+            height: 40px;
+            border-radius: 5px;
+            border: 2px solid var(--main-color);
+            background-color: var(--bg-color);
+            box-shadow: 4px 4px var(--main-color);
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--font-color);
+            padding: 5px 10px;
+            outline: none;
+            box-sizing: border-box;
+            flex: 1;
+            min-width: 0;
+            max-width: 250px;
+          }
+          .flip-card__input::placeholder, .phone-number::placeholder {
+            color: var(--font-color-sub);
+            opacity: 0.8;
+          }
+          .flip-card__input:focus, .phone-number:focus {
+            border: 2px solid var(--input-focus);
+            outline: none;
+          }
+          .button-confirm {
+            margin: 18px auto 6px auto;
+            width: 120px;
+            height: 40px;
+            border-radius: 5px;
+            border: 2px solid var(--main-color);
+            background-color: var(--bg-color);
+            box-shadow: 4px 4px var(--main-color);
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--font-color);
+            cursor: pointer;
+            display: block;
+            transition: transform 0.1s, box-shadow 0.1s;
+          }
+          .button-confirm:active {
+            box-shadow: 0 0 var(--main-color);
+            transform: translate(3px, 3px);
+          }
+          .button-confirm:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+          }
+          .signin-signup-link {
+            text-align: center;
+            margin-top: 2px;
+            margin-bottom: 2px;
+            font-size: 16px;
+          }
+          .signin-signup-link span {
+            color: #666;
+            font-weight: 700;
+            cursor: pointer;
+            text-decoration: underline;
+          }
+          @media (max-width: 700px) {
+            .flip-card__back {
+              width: 98vw;
+              min-width: 0;
+              padding: 12px;
+            }
+            .button-confirm {
+              width: 100%;
+            }
+          }
+          /* Fix intl-tel-input dropdown for both themes */
+          .iti__country-list,
+          .iti__country,
+          .iti__search-input,
+          .iti__country-name {
+            background-color: var(--bg-color) !important;
+            color: var(--font-color) !important;
+            border-color: var(--main-color) !important;
+          }
+          .iti__country.iti__highlight,
+          .iti__country.iti__highlight .iti__country-name {
+            background-color: var(--bg-color-alt) !important;
+            color: var(--font-color) !important;
+          }
+          .iti__divider {
+            border-top: 1px solid var(--main-color) !important;
+          }
+          .iti__search-input {
+            border: 1px solid var(--main-color) !important;
+          }
+          
+          /* Style custom dropdown to match form inputs */
+          .custom-dropdown-container {
+            height: 40px;
+            border-radius: 5px;
+            border: 2px solid var(--main-color);
+            background-color: var(--bg-color);
+            box-shadow: 4px 4px var(--main-color);
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--font-color);
+            padding: 5px 10px;
+            outline: none;
+            box-sizing: border-box;
+            flex: 1;
+            min-width: 0;
+            max-width: 250px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+          }
+          
+          .custom-dropdown-container:focus {
+            border: 2px solid var(--input-focus);
+            outline: none;
+          }
+        `}</style>
+
       
       {isSignUp ? (
         <div className="flip-card__back" role="region" aria-label="Sign up form">
