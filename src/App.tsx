@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import TransactionsPage from "@/pages/transactions";
 import AlertsPage from "@/pages/alerts";
 import CasesPage from "@/pages/cases";
@@ -21,17 +22,57 @@ import Auth from "@/pages/Auth";
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/auth" component={Auth} />
-      <Route path="/transactions" component={TransactionsPage} />
-      <Route path="/alerts" component={AlertsPage} />
-      <Route path="/cases" component={CasesPage} />
-      <Route path="/sanctions" component={SanctionsPage} />
-      <Route path="/reports" component={ReportsPage} />
-      <Route path="/api-management" component={ApiManagementPage} />
-      <Route path="/settings" component={SettingsPage} />
-      <Route path="/billing" component={BillingPage} />
-      <Route path="/profile" component={ProfilePage} />
+      <Route path="/" component={Auth} />
+      <Route path="/dashboard">
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/transactions">
+        <ProtectedRoute>
+          <TransactionsPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/alerts">
+        <ProtectedRoute>
+          <AlertsPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/cases">
+        <ProtectedRoute>
+          <CasesPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/sanctions">
+        <ProtectedRoute>
+          <SanctionsPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/reports">
+        <ProtectedRoute>
+          <ReportsPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/api-management">
+        <ProtectedRoute>
+          <ApiManagementPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/settings">
+        <ProtectedRoute>
+          <SettingsPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/billing">
+        <ProtectedRoute>
+          <BillingPage />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/profile">
+        <ProtectedRoute>
+          <ProfilePage />
+        </ProtectedRoute>
+      </Route>
       <Route component={NotFound} />
     </Switch>
   );

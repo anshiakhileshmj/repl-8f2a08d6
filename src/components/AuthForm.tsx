@@ -28,7 +28,6 @@ const AuthForm = () => {
   const [isPhoneValid, setIsPhoneValid] = useState(false);
 
   useEffect(() => {
-    
     if (user) {
       navigate('/dashboard');
     }
@@ -349,7 +348,7 @@ const AuthForm = () => {
               />
               <IntlTelInput
                 initialValue={phone}
-                onChangeNumber={(num) => {
+                onChangeNumber={(num: string) => {
                   const formatted = num.replace(/(?!^\+)\D/g, "");
                   setPhone(formatted);
                 }}
