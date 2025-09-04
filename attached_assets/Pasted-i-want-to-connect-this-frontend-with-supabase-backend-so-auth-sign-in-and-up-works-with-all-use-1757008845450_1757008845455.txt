@@ -1,0 +1,15 @@
+i want to connect this frontend with supabase backend
+
+so auth (sign in and up) works with all user deatils being stored in backend
+this project can generate real apis securely and api keys should be stored in db that can work with endpoints available in relay-api and relay-api/app directory correctly. relay-api complete directory is already working correctly on render and its deployed their.
+all those transactions which go through my apis at users platform should be shown to user in transactions atab at dashboard.
+apis can be created, rotated, deleted and usage and other details can be seen by user.
+i've razorpay integartion so i can provide subscription based services to user like free, starter, pro and growth (starter, pro and growth are paid)
+free with limited api requests, starter with 10,000, pro with 50,000 checks and growth with unlimited and once user is on paid plan he can use all features perfectly. and all api usage and requests or success or failure should be shown in usage tab at billing component in dashboard.
+
+those parts of dashboard which show graph, analytics and heatmap and other graphs or charts should update regularly with api usage and data that is being received by my api
+ex - my user has used my api in his web3 payment app and launched it and a new user uses this web3 payment app to make a payment to some wallet address
+
+if payment successful then it this transaction should be shown in transactions component at my dashboard along with logs, if any receiver wallet is found in ofac sanctions then it should be shown in respective component at my dashboard which alert my user and in transactions and based on this all also and similary other components should also work and update like charts, heatmap and analysis whatever. okay
+
+tell me how to do this and if you can write me complete sql query to run on supabase without errors and update my frontend to use real row, table and column and policies from this query so they can be properly linked and can work.
