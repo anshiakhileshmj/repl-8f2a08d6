@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/dashboard";
+import { AuthProvider } from "@/contexts/AuthContext";
 import TransactionsPage from "@/pages/transactions";
 import AlertsPage from "@/pages/alerts";
 import CasesPage from "@/pages/cases";
@@ -20,8 +21,8 @@ import Auth from "@/pages/Auth";
 function Router() {
   return (
     <Switch>
+      <Route path="/" component={Dashboard} />
       <Route path="/auth" component={Auth} />
-      <Route path="/dashboard" component={Dashboard} />
       <Route path="/transactions" component={TransactionsPage} />
       <Route path="/alerts" component={AlertsPage} />
       <Route path="/cases" component={CasesPage} />
@@ -31,7 +32,6 @@ function Router() {
       <Route path="/settings" component={SettingsPage} />
       <Route path="/billing" component={BillingPage} />
       <Route path="/profile" component={ProfilePage} />
-      <Route path="/" component={Dashboard} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -42,8 +42,11 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
+          <AuthProvider>
           <Toaster />
-          <Router />
+          
+            <Router />
+          </AuthProvider>
         </TooltipProvider>
       </ThemeProvider>
     </QueryClientProvider>
