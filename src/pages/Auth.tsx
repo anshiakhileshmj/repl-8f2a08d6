@@ -202,6 +202,12 @@ const Auth = () => {
 };
 
 const StyledWrapper = styled.div`
+  background-color: #000; /* Full page black background */
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
   .wrapper {
     --input-focus: #2d8cf0;
     --font-color: #fefefe;
@@ -209,13 +215,14 @@ const StyledWrapper = styled.div`
     --bg-color: #111;
     --bg-color-alt: #7e7e7e;
     --main-color: #fefefe;
-      /* display: flex; */
-      /* flex-direction: column; */
-      /* align-items: center; */
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
+
   /* switch card */
   .switch {
-    transform: translateY(-200px);
     position: relative;
     display: flex;
     flex-direction: column;
@@ -243,7 +250,6 @@ const StyledWrapper = styled.div`
     left: 70px;
     top: 0;
     width: 100px;
-    text-decoration: none;
     color: var(--font-color);
     font-weight: 600;
   }
@@ -301,15 +307,12 @@ const StyledWrapper = styled.div`
   }
 
   /* card */ 
-
   .flip-card__inner {
     width: 300px;
     height: 350px;
     position: relative;
     background-color: transparent;
     perspective: 1000px;
-      /* width: 100%;
-      height: 100%; */
     text-align: center;
     transition: transform 0.8s;
     transform-style: preserve-3d;
@@ -317,10 +320,6 @@ const StyledWrapper = styled.div`
 
   .toggle:checked ~ .flip-card__inner {
     transform: rotateY(180deg);
-  }
-
-  .toggle:checked ~ .flip-card__front {
-    box-shadow: none;
   }
 
   .flip-card__front, .flip-card__back {
@@ -351,7 +350,7 @@ const StyledWrapper = styled.div`
   }
 
   .title {
-    margin: 20px 0 20px 0;
+    margin: 20px 0;
     font-size: 25px;
     font-weight: 900;
     text-align: center;
@@ -381,13 +380,13 @@ const StyledWrapper = styled.div`
     border: 2px solid var(--input-focus);
   }
 
-  .flip-card__btn:active, .button-confirm:active {
+  .flip-card__btn:active {
     box-shadow: 0px 0px var(--main-color);
     transform: translate(3px, 3px);
   }
 
   .flip-card__btn {
-    margin: 20px 0 20px 0;
+    margin: 20px 0;
     width: 120px;
     height: 40px;
     border-radius: 5px;
@@ -405,5 +404,6 @@ const StyledWrapper = styled.div`
     cursor: not-allowed;
   }
 `;
+
 
 export default Auth;
