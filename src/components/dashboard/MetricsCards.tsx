@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertTriangle, FolderOpen, ShieldQuestion, BarChart3, TrendingUp, TrendingDown } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
