@@ -1,0 +1,61 @@
+src/components/dashboard/AdvancedFiltering.tsx(156,47): error TS2339: Property 'length' does not exist on type '{}'.
+src/components/dashboard/AdvancedFiltering.tsx(157,32): error TS2339: Property 'map' does not exist on type '{}'.
+src/components/dashboard/AdvancedFiltering.tsx(157,37): error TS7006: Parameter 'transaction' implicitly has an 'any' type.
+src/components/dashboard/AdvancedFiltering.tsx(228,38): error TS2339: Property 'length' does not exist on type '{}'.
+src/components/dashboard/AdvancedFiltering.tsx(228,69): error TS2339: Property 'length' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(48,39): error TS2339: Property 'usage' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(48,64): error TS2339: Property 'usage' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(49,43): error TS2339: Property 'usage' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(49,67): error TS2339: Property 'usage' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(65,113): error TS2339: Property 'plan' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(69,110): error TS2339: Property 'plan' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(74,26): error TS2339: Property 'plan' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(74,45): error TS7006: Parameter 'feature' implicitly has an 'any' type.
+src/components/dashboard/inline/Billing.tsx(74,54): error TS7006: Parameter 'index' implicitly has an 'any' type.
+src/components/dashboard/inline/Billing.tsx(102,49): error TS2339: Property 'paymentMethod' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(105,42): error TS2339: Property 'paymentMethod' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(121,24): error TS2339: Property 'invoices' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(121,38): error TS7006: Parameter 'invoice' implicitly has an 'any' type.
+src/components/dashboard/inline/Billing.tsx(159,34): error TS2339: Property 'usage' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(159,78): error TS2339: Property 'usage' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(168,34): error TS2339: Property 'usage' does not exist on type '{}'.
+src/components/dashboard/inline/Billing.tsx(168,63): error TS2339: Property 'usage' does not exist on type '{}'.
+src/pages/alerts.tsx(42,34): error TS2339: Property 'filter' does not exist on type '{}'.
+src/pages/alerts.tsx(42,41): error TS7006: Parameter 'alert' implicitly has an 'any' type.
+src/pages/alerts.tsx(57,47): error TS7006: Parameter 'alert' implicitly has an 'any' type.
+src/pages/alerts.tsx(58,49): error TS7006: Parameter 'alert' implicitly has an 'any' type.
+src/pages/alerts.tsx(119,35): error TS2339: Property 'length' does not exist on type '{}'.
+src/pages/alerts.tsx(120,40): error TS2339: Property 'filter' does not exist on type '{}'.
+src/pages/alerts.tsx(120,47): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/pages/alerts.tsx(120,82): error TS2339: Property 'length' does not exist on type '{}'.
+src/pages/alerts.tsx(226,39): error TS7006: Parameter 'alert' implicitly has an 'any' type.
+src/pages/billing.tsx(116,38): error TS2339: Property 'reduce' does not exist on type '{}'.
+src/pages/billing.tsx(116,46): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/pages/billing.tsx(116,51): error TS7006: Parameter 'bill' implicitly has an 'any' type.
+src/pages/billing.tsx(281,55): error TS2339: Property 'length' does not exist on type '{}'.
+src/pages/billing.tsx(282,38): error TS2339: Property 'map' does not exist on type '{}'.
+src/pages/billing.tsx(282,43): error TS7006: Parameter 'bill' implicitly has an 'any' type.
+src/pages/cases.tsx(51,32): error TS2339: Property 'filter' does not exist on type '{}'.
+src/pages/cases.tsx(51,39): error TS7006: Parameter 'caseItem' implicitly has an 'any' type.
+src/pages/cases.tsx(64,42): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/pages/cases.tsx(65,48): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/pages/cases.tsx(66,44): error TS7006: Parameter 'c' implicitly has an 'any' type.
+src/pages/cases.tsx(220,38): error TS7006: Parameter 'caseItem' implicitly has an 'any' type.
+src/pages/reports.tsx(46,36): error TS2339: Property 'filter' does not exist on type '{}'.
+src/pages/reports.tsx(46,43): error TS7006: Parameter 'report' implicitly has an 'any' type.
+src/pages/reports.tsx(56,45): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/pages/reports.tsx(57,45): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/pages/reports.tsx(58,49): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/pages/reports.tsx(245,40): error TS7006: Parameter 'report' implicitly has an 'any' type.
+src/pages/sanctions.tsx(88,46): error TS2339: Property 'filter' does not exist on type '{}'.
+src/pages/sanctions.tsx(88,53): error TS7006: Parameter 'wallet' implicitly has an 'any' type.
+src/pages/sanctions.tsx(126,44): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/pages/sanctions.tsx(127,46): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/pages/sanctions.tsx(328,40): error TS7006: Parameter 'wallet' implicitly has an 'any' type.
+src/pages/transactions.tsx(38,46): error TS2339: Property 'filter' does not exist on type '{}'.
+src/pages/transactions.tsx(38,53): error TS7006: Parameter 'transaction' implicitly has an 'any' type.
+src/pages/transactions.tsx(54,52): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/pages/transactions.tsx(54,57): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/pages/transactions.tsx(55,52): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/pages/transactions.tsx(116,46): error TS7006: Parameter 'tx' implicitly has an 'any' type.
+src/pages/transactions.tsx(207,45): error TS7006: Parameter 'transaction' implicitly has an 'any' type.
