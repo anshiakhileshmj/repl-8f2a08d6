@@ -5,11 +5,99 @@ import { Progress } from "@/components/ui/progress";
 import { CheckCircle, Download } from "lucide-react";
 import { useInlineSection } from "@/hooks/useInlineSection";
 import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export function Billing() {
   const { isOpen } = useInlineSection();
   const { data: billingData = {}, isLoading, error } = useQuery({
-    queryKey: ["/api/billing"],
+    queryKey: ['billing-data'],
+    queryFn: async () => {
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) throw new Error('User not authenticated');
+
+      // Get user profile with subscription info
+      const { data: profile, error: profileError } = await supabase
+        .from('user_profiles')
+        .select('subscription_plan, subscription_status, api_usage_current_month, api_usage_limit')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Get API usage for current month
+      const { data: apiKeys, error: apiKeysError } = await supabase
+        .from('api_keys')
+        .select('partner_id, usage_count')
+        .eq('user_id', user.id);
+
+      if (apiKeysError) throw apiKeysError;
+
+      // Calculate total usage
+      const totalUsage = apiKeys.reduce((sum, key) => sum + (key.usage_count || 0), 0);
+
+      // Define plan features and pricing
+      const planConfig = {
+        'free': {
+          name: 'Free Plan',
+          price: 0,
+          limit: 100,
+          features: [
+            'Up to 100 API calls/month',
+            'Basic risk assessment',
+            'Email alerts',
+            'Community support'
+          ]
+        },
+        'starter': {
+          name: 'Starter Plan',
+          price: 49,
+          limit: 10000,
+          features: [
+            'Up to 10K API calls/month',
+            'Advanced risk analytics',
+            'Real-time alerts',
+            'Email support'
+          ]
+        },
+        'pro': {
+          name: 'Pro Plan',
+          price: 149,
+          limit: 50000,
+          features: [
+            'Up to 50K API calls/month',
+            'Comprehensive AML monitoring',
+            'Custom rules & workflows',
+            'Priority support'
+          ]
+        },
+        'growth': {
+          name: 'Growth Plan',
+          price: 299,
+          limit: 1000000,
+          features: [
+            'Unlimited API calls',
+            'Enterprise-grade monitoring',
+            'Dedicated account manager',
+            'SLA guarantees'
+          ]
+        }
+      };
+
+      const currentPlan = planConfig[profile?.subscription_plan || 'free'];
+
+      return {
+        plan: currentPlan,
+        usage: {
+          apiCalls: totalUsage,
+          apiLimit: profile?.api_usage_limit || currentPlan.limit,
+          storage: 5.2, // Mock storage for now
+          storageLimit: 100,
+        },
+        status: profile?.subscription_status || 'active',
+        billingPeriod: 'monthly',
+      };
+    },
     enabled: isOpen("billing"),
     retry: false,
     refetchOnWindowFocus: false,
@@ -17,33 +105,37 @@ export function Billing() {
 
   if (!isOpen("billing")) return null;
 
+  // Loading state
+  if (isLoading) {
+    return (
+      <Card className="bg-card dark:bg-card border-border dark:border-border" data-testid="billing-section">
+        <CardHeader>
+          <CardTitle className="text-card-foreground dark:text-card-foreground">Billing & Subscription</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="animate-pulse space-y-4">
+            <div className="h-32 bg-muted dark:bg-muted rounded-lg"></div>
+            <div className="h-24 bg-muted dark:bg-muted rounded-lg"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Default values if no data
   const defaultBilling = {
     plan: {
-      name: "Professional Plan",
-      price: 299,
-      features: [
-        "Up to 2M API calls/month",
-        "Real-time transaction monitoring",
-        "Advanced risk analytics",
-        "24/7 priority support"
-      ]
-    },
-    paymentMethod: {
-      type: "Visa",
-      last4: "4242",
-      expiry: "12/25"
+      name: "Free Plan",
+      price: 0,
+      features: ["Up to 100 API calls/month", "Basic risk assessment"]
     },
     usage: {
-      apiCalls: 1245678,
-      apiLimit: 2000000,
-      storage: 15.2,
+      apiCalls: 0,
+      apiLimit: 100,
+      storage: 0,
       storageLimit: 100
     },
-    invoices: [
-      { id: "1", date: "Jan 1, 2024", amount: 299, status: "paid", period: "January 2024" },
-      { id: "2", date: "Dec 1, 2023", amount: 299, status: "paid", period: "December 2023" },
-      { id: "3", date: "Nov 1, 2023", amount: 99, status: "paid", period: "November 2023" }
-    ]
+    status: "active"
   };
 
   const billing = billingData || defaultBilling;
