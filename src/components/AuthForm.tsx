@@ -181,13 +181,20 @@ const AuthForm = () => {
           business_type: businessType
         };
         
-        const { error } = await signUp(email, password, metadata);
-        if (error) throw error;
+        const result = await signUp(email, password, metadata);
+        if (result.error) throw result.error;
         
-        toast({
-          title: "Sign Up Successful",
-          description: "You have successfully signed up. Redirecting...",
-        });
+        if (result.needsEmailConfirmation) {
+          toast({
+            title: "Check Your Email",
+            description: result.message || "Please check your email and click the confirmation link to complete your signup.",
+          });
+        } else {
+          toast({
+            title: "Sign Up Successful",
+            description: "You have successfully signed up. Redirecting...",
+          });
+        }
       } else {
         const { error } = await signIn(email, password);
         if (error) throw error;

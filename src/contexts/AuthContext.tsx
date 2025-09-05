@@ -20,6 +20,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Handle email confirmation URL hash parameters
+    const handleAuthCallback = async () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      
+      if (accessToken && refreshToken) {
+        console.log('Processing auth callback with tokens');
+        try {
+          const { data, error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken
+          });
+          
+          if (error) {
+            console.error('Error setting session:', error);
+          } else {
+            console.log('Session set successfully:', data);
+            // Clear the hash from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        } catch (err) {
+          console.error('Error processing auth callback:', err);
+        }
+      }
+    };
+
+    handleAuthCallback();
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
@@ -58,6 +87,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       console.log('Signup successful:', data);
+      
+      // Check if user needs email confirmation
+      if (data.user && !data.user.email_confirmed_at) {
+        return { 
+          error: null, 
+          needsEmailConfirmation: true,
+          message: 'Please check your email and click the confirmation link to complete your signup.'
+        };
+      }
+      
       return { error: null };
     } catch (err) {
       console.error('Unexpected signup error:', err);
