@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { User, Mail, Phone, Building, MapPin, Calendar, Shield, Key, Save, Camera } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,25 +14,85 @@ import { Layout } from "@/components/layout/Layout";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState({
-    fullName: "John Doe",
-    email: "john.doe@fintech.com",
-    phone: "+1 (555) 123-4567",
-    company: "FinTech Solutions Inc.",
-    jobTitle: "Chief Compliance Officer",
-    department: "Risk & Compliance",
-    location: "New York, NY",
-    bio: "Experienced compliance professional with 10+ years in financial services and AML operations.",
-    website: "https://fintechsolutions.com",
-    linkedin: "linkedin.com/in/johndoe",
-    joinedDate: "2023-03-15",
-    lastLogin: "2024-01-14T10:30:00Z",
-    twoFactorEnabled: true,
-    emailVerified: true,
+    fullName: "",
+    email: "",
+    phone: "",
+    company: "",
+    jobTitle: "",
+    department: "",
+    location: "",
+    bio: "",
+    website: "",
+    linkedin: "",
+    businessType: "",
+    joinedDate: "",
+    lastLogin: "",
+    twoFactorEnabled: false,
+    emailVerified: true, // Always verified since users confirm email during signup
     phoneVerified: false,
   });
 
-  const { toast } = useToast();
+  // Fetch user profile data from Supabase
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load profile data.",
+            variant: "destructive"
+          });
+          return;
+        }
+
+        if (data) {
+          setProfile({
+            fullName: data.full_name || `${data.first_name || ''} ${data.last_name || ''}`.trim(),
+            email: data.email || user.email || '',
+            phone: data.phone || '',
+            company: data.company_name || '',
+            jobTitle: data.job_title || '',
+            department: data.department || '',
+            location: data.location || '',
+            bio: data.bio || '',
+            website: data.company_website || '',
+            linkedin: data.linkedin_profile || '',
+            businessType: data.business_type || '',
+            joinedDate: data.created_at || '',
+            lastLogin: user.last_sign_in_at || '',
+            twoFactorEnabled: false,
+            emailVerified: true,
+            phoneVerified: false,
+          });
+        }
+      } catch (err) {
+        console.error('Unexpected error fetching profile:', err);
+        toast({
+          title: "Error",
+          description: "An unexpected error occurred while loading your profile.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProfile();
+  }, [user, toast]);
 
   const handleProfileUpdate = (field: string, value: string) => {
     setProfile(prev => ({
@@ -39,12 +101,83 @@ export default function ProfilePage() {
     }));
   };
 
-  const handleSaveProfile = () => {
-    // Simulate API call
-    toast({
-      title: "Profile Updated",
-      description: "Your profile information has been saved successfully.",
-    });
+  const validateUrls = () => {
+    const errors: string[] = [];
+
+    // Validate company website
+    if (profile.website && profile.website.trim()) {
+      const websiteRegex = /^https:\/\/(www\.)?[a-zA-Z0-9-]+\.[a-zA-Z]{2,}/;
+      if (!websiteRegex.test(profile.website)) {
+        errors.push("Company website must start with https:// and include www.");
+      }
+    }
+
+    // Validate LinkedIn profile
+    if (profile.linkedin && profile.linkedin.trim()) {
+      if (!profile.linkedin.startsWith('https://')) {
+        errors.push("LinkedIn profile must start with https://");
+      }
+    }
+
+    return errors;
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user?.id) return;
+
+    // Validate URLs
+    const validationErrors = validateUrls();
+    if (validationErrors.length > 0) {
+      toast({
+        title: "Validation Error",
+        description: validationErrors.join(' '),
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profile.fullName,
+          phone: profile.phone,
+          location: profile.location,
+          bio: profile.bio,
+          company_name: profile.company,
+          job_title: profile.jobTitle,
+          department: profile.department,
+          company_website: profile.website,
+          linkedin_profile: profile.linkedin,
+          business_type: profile.businessType,
+          updated_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating profile:', error);
+        toast({
+          title: "Error",
+          description: "Failed to update profile. Please try again.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Profile Updated",
+          description: "Your profile information has been saved successfully.",
+        });
+      }
+    } catch (err) {
+      console.error('Unexpected error updating profile:', err);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred while saving your profile.",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleAvatarUpload = () => {
@@ -59,6 +192,20 @@ export default function ProfilePage() {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
 
+  // Show loading spinner while fetching data
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="animate-pulse text-center">
+            <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4"></div>
+            <div className="w-32 h-4 bg-muted rounded mx-auto"></div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -68,9 +215,13 @@ export default function ProfilePage() {
             <h1 className="text-3xl font-bold tracking-tight">Profile Settings</h1>
             <p className="text-muted-foreground">Manage your account information and preferences</p>
           </div>
-          <Button onClick={handleSaveProfile} data-testid="button-save-profile">
+          <Button 
+            onClick={handleSaveProfile} 
+            disabled={saving || loading}
+            data-testid="button-save-profile"
+          >
             <Save className="w-4 h-4 mr-2" />
-            Save Changes
+            {saving ? "Saving..." : "Save Changes"}
           </Button>
         </div>
 
@@ -228,9 +379,11 @@ export default function ProfilePage() {
                       id="email"
                       type="email"
                       value={profile.email}
-                      onChange={(e) => handleProfileUpdate("email", e.target.value)}
+                      disabled
+                      className="bg-muted"
                       data-testid="input-email"
                     />
+                    <p className="text-xs text-muted-foreground mt-1">Email cannot be changed</p>
                   </div>
                   <div>
                     <Label htmlFor="phone">Phone Number</Label>
@@ -246,6 +399,7 @@ export default function ProfilePage() {
                     <Label htmlFor="location">Location</Label>
                     <Input
                       id="location"
+                      placeholder="e.g., New York, NY"
                       value={profile.location}
                       onChange={(e) => handleProfileUpdate("location", e.target.value)}
                       data-testid="input-location"
@@ -256,7 +410,7 @@ export default function ProfilePage() {
                   <Label htmlFor="bio">Bio</Label>
                   <Textarea
                     id="bio"
-                    placeholder="Tell us about yourself..."
+                    placeholder="Tell us about your professional background and expertise..."
                     value={profile.bio}
                     onChange={(e) => handleProfileUpdate("bio", e.target.value)}
                     data-testid="textarea-bio"
@@ -281,7 +435,8 @@ export default function ProfilePage() {
                     <Input
                       id="company"
                       value={profile.company}
-                      onChange={(e) => handleProfileUpdate("company", e.target.value)}
+                      disabled
+                      className="bg-muted"
                       data-testid="input-company"
                     />
                   </div>
@@ -290,14 +445,26 @@ export default function ProfilePage() {
                     <Input
                       id="job-title"
                       value={profile.jobTitle}
-                      onChange={(e) => handleProfileUpdate("jobTitle", e.target.value)}
+                      disabled
+                      className="bg-muted"
                       data-testid="input-job-title"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="business-type">Business Type</Label>
+                    <Input
+                      id="business-type"
+                      value={profile.businessType}
+                      disabled
+                      className="bg-muted"
+                      data-testid="input-business-type"
                     />
                   </div>
                   <div>
                     <Label htmlFor="department">Department</Label>
                     <Input
                       id="department"
+                      placeholder="e.g., Risk & Compliance"
                       value={profile.department}
                       onChange={(e) => handleProfileUpdate("department", e.target.value)}
                       data-testid="input-department"
@@ -308,6 +475,7 @@ export default function ProfilePage() {
                     <Input
                       id="website"
                       type="url"
+                      placeholder="https://www.yourcompany.com"
                       value={profile.website}
                       onChange={(e) => handleProfileUpdate("website", e.target.value)}
                       data-testid="input-website"
@@ -318,6 +486,7 @@ export default function ProfilePage() {
                   <Label htmlFor="linkedin">LinkedIn Profile</Label>
                   <Input
                     id="linkedin"
+                    placeholder="https://linkedin.com/in/yourprofile"
                     value={profile.linkedin}
                     onChange={(e) => handleProfileUpdate("linkedin", e.target.value)}
                     data-testid="input-linkedin"
