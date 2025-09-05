@@ -38,17 +38,32 @@ export function ApiKeyManager() {
     enabled: !!user,
   });
 
-  // Create API key mutation
+  // Create API key mutation  
   const createApiKey = useMutation({
     mutationFn: async (keyName: string) => {
+      // Use the secure API key generation from apiKeyUtils
+      const { generateApiKey, generateApiSecret, hashApiKey, createApiKeyPreview, checkSubscriptionLimits } = await import('@/lib/apiKeyUtils');
+      
       if (!user) throw new Error('User not authenticated');
       
-      // Generate a unique API key
-      const apiKey = `ak_${Math.random().toString(36).substr(2, 9)}_${Date.now().toString(36)}`;
-      const partnerIdLength = 20;
-      const partnerId = Array.from({ length: partnerIdLength }, () => 
-        'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random() * 62)]
-      ).join('');
+      // Check subscription limits
+      const { limits } = await checkSubscriptionLimits(user.id);
+      
+      // Check if user can create more API keys
+      const { data: existingKeys } = await supabase
+        .from('api_keys')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_active', true);
+
+      if (limits.apiKeys !== -1 && (existingKeys?.length || 0) >= limits.apiKeys) {
+        throw new Error(`API key limit reached. Your plan allows ${limits.apiKeys} active API keys.`);
+      }
+
+      const apiKey = generateApiKey();
+      const apiSecret = generateApiSecret();
+      const keyHash = await hashApiKey(apiKey);
+      const partnerId = crypto.randomUUID();
 
       const { data, error } = await supabase
         .from('api_keys')
@@ -56,16 +71,18 @@ export function ApiKeyManager() {
           user_id: user.id,
           partner_id: partnerId,
           key_name: keyName,
-          key: apiKey,
+          api_key: apiKey,
+          api_secret: apiSecret,
+          key_hash: keyHash,
           is_active: true,
           rate_limit_per_minute: 60,
-          rate_limit_per_day: 1000,
+          rate_limit_per_day: limits.apiCalls === -1 ? 999999 : Math.min(limits.apiCalls / 30, 10000),
         })
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return { ...data, key: apiKey, secret: apiSecret };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['api-keys'] });
@@ -231,7 +248,7 @@ export function ApiKeyManager() {
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       <code className="text-sm bg-muted px-2 py-1 rounded">
-                        {formatApiKey(apiKey.key || '', apiKey.id)}
+                        {formatApiKey(apiKey.api_key || '', apiKey.id)}
                       </code>
                       <Button
                         variant="ghost"
@@ -247,7 +264,7 @@ export function ApiKeyManager() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => copyToClipboard(apiKey.key || '')}
+                        onClick={() => copyToClipboard(apiKey.api_key || '')}
                       >
                         <Copy className="w-4 h-4" />
                       </Button>

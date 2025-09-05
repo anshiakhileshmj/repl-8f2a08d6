@@ -12,7 +12,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 
-const getRiskBadgeColor = (score: number) => {
+const getRiskBadgeColor = (level: string) => {
+  switch (level) {
+    case "critical": return "destructive";
+    case "high": return "secondary";
+    case "medium": return "outline";
+    default: return "default";
+  }
+};
+
+const getRiskScore = (score: number) => {
   if (score >= 80) return "destructive";
   if (score >= 60) return "secondary";
   if (score >= 40) return "outline";
@@ -21,9 +30,10 @@ const getRiskBadgeColor = (score: number) => {
 
 const getStatusIcon = (status: string) => {
   switch (status) {
-    case "approved": return <CheckCircle className="w-4 h-4 text-green-500" />;
-    case "rejected": return <XCircle className="w-4 h-4 text-red-500" />;
+    case "completed": return <CheckCircle className="w-4 h-4 text-green-500" />;
+    case "failed": return <XCircle className="w-4 h-4 text-red-500" />;
     case "flagged": return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
+    case "pending": return <Clock className="w-4 h-4 text-blue-500" />;
     default: return <Clock className="w-4 h-4 text-blue-500" />;
   }
 };
@@ -33,38 +43,45 @@ export default function TransactionsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [riskFilter, setRiskFilter] = useState("all");
 
+  const { user } = useAuth();
   const { data: transactions = [], isLoading, error } = useQuery({
     queryKey: ["transactions", { search: searchQuery, status: statusFilter, risk: riskFilter }],
     queryFn: async () => {
+      if (!user) return [];
+      
       const { data, error } = await supabase
         .from('transactions')
         .select('*')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data || [];
     },
+    enabled: !!user,
     retry: false,
     refetchOnWindowFocus: false,
   });
 
   const filteredTransactions = transactions?.filter(transaction => {
     const matchesSearch = !searchQuery || 
-      transaction.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      transaction.customerId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      transaction.description?.toLowerCase().includes(searchQuery.toLowerCase());
+      transaction.customer_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.customer_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.from_address?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.to_address?.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === "all" || transaction.status === statusFilter;
     
     const matchesRisk = riskFilter === "all" || 
-      (riskFilter === "high" && transaction.riskScore >= 70) ||
-      (riskFilter === "medium" && transaction.riskScore >= 40 && transaction.riskScore < 70) ||
-      (riskFilter === "low" && transaction.riskScore < 40);
+      (riskFilter === "high" && transaction.risk_score >= 70) ||
+      (riskFilter === "medium" && transaction.risk_score >= 40 && transaction.risk_score < 70) ||
+      (riskFilter === "low" && transaction.risk_score < 40);
     
     return matchesSearch && matchesStatus && matchesRisk;
   }) || [];
 
-  const totalAmount = filteredTransactions.reduce((sum, tx) => sum + parseFloat(tx.amount), 0);
+  const totalAmount = filteredTransactions.reduce((sum, tx) => sum + parseFloat(tx.amount || 0), 0);
   const flaggedCount = filteredTransactions.filter(tx => tx.status === "flagged").length;
 
   return (
@@ -160,9 +177,9 @@ export default function TransactionsPage() {
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
                     <SelectItem value="flagged">Flagged</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -194,9 +211,9 @@ export default function TransactionsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Customer</TableHead>
+                  <TableHead>Transaction</TableHead>
                   <TableHead>Amount</TableHead>
-                  <TableHead>Type</TableHead>
+                  <TableHead>Blockchain</TableHead>
                   <TableHead>Risk Score</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
@@ -221,20 +238,34 @@ export default function TransactionsPage() {
                     <TableRow key={transaction.id} data-testid={`transaction-${transaction.id}`}>
                       <TableCell>
                         <div>
-                          <div className="font-medium">{transaction.customerName}</div>
-                          <div className="text-sm text-muted-foreground">{transaction.customerId}</div>
+                          <div className="font-medium text-xs">{transaction.to_address}</div>
+                          <div className="text-xs text-muted-foreground">
+                            From: {transaction.from_address}
+                          </div>
+                          {transaction.customer_name && (
+                            <div className="text-xs text-muted-foreground">
+                              Customer: {transaction.customer_name}
+                            </div>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell className="font-medium">
-                        ${parseFloat(transaction.amount).toLocaleString()} {transaction.currency}
+                        {transaction.amount ? `${parseFloat(transaction.amount).toLocaleString()} ${transaction.currency || 'ETH'}` : 'N/A'}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{transaction.transactionType}</Badge>
+                        <Badge variant="outline">{transaction.blockchain || 'ethereum'}</Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant={getRiskBadgeColor(transaction.riskScore)}>
-                          {transaction.riskScore}/100
-                        </Badge>
+                        <div className="flex flex-col space-y-1">
+                          <Badge variant={getRiskScore(transaction.risk_score || 0)}>
+                            {transaction.risk_score || 0}/100
+                          </Badge>
+                          {transaction.risk_level && (
+                            <Badge variant={getRiskBadgeColor(transaction.risk_level)} className="text-xs">
+                              {transaction.risk_level}
+                            </Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
@@ -243,7 +274,10 @@ export default function TransactionsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {new Date(transaction.createdAt!).toLocaleDateString()}
+                        <div className="flex flex-col">
+                          <span className="text-sm">{new Date(transaction.created_at).toLocaleDateString()}</span>
+                          <span className="text-xs text-muted-foreground">{new Date(transaction.created_at).toLocaleTimeString()}</span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Button variant="ghost" size="sm" data-testid={`button-view-${transaction.id}`}>

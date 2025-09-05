@@ -1,13 +1,23 @@
 import { supabase } from "@/integrations/supabase/client";
 
-// Generate a new API key with format wm_ + 32 random hex characters
+// Generate a new API key with format sk_live_ + 64 random hex characters (matches relay-API format)
 export function generateApiKey(): string {
-  const randomBytes = new Uint8Array(16);
+  const randomBytes = new Uint8Array(32); // 32 bytes = 64 hex chars
   crypto.getRandomValues(randomBytes);
   const hexString = Array.from(randomBytes)
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
-  return `wm_${hexString}`;
+  return `sk_live_${hexString}`;
+}
+
+// Generate a secure API secret
+export function generateApiSecret(): string {
+  const randomBytes = new Uint8Array(32);
+  crypto.getRandomValues(randomBytes);
+  const hexString = Array.from(randomBytes)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+  return `sk_secret_${hexString}`;
 }
 
 // Hash API key using SHA-256
@@ -27,19 +37,52 @@ export function createApiKeyPreview(apiKey: string): string {
   return `${apiKey.substring(0, 8)}...${apiKey.substring(apiKey.length - 4)}`;
 }
 
-// Get user profile with partner_id
+// Get user profile
 export async function getUserProfile() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('User not authenticated');
 
   const { data: profile, error } = await supabase
-    .from('profiles')
+    .from('user_profiles')
     .select('*')
-    .eq('user_id', user.id)
+    .eq('id', user.id)
     .single();
 
   if (error) throw error;
   return profile;
+}
+
+// Check subscription limits
+export async function checkSubscriptionLimits(userId: string) {
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('subscription_plan')
+    .eq('id', userId)
+    .single();
+
+  const { data: currentUsage } = await supabase
+    .from('subscription_usage')
+    .select('api_calls_used, api_calls_limit')
+    .eq('user_id', userId)
+    .gte('billing_period_start', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
+    .lte('billing_period_end', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
+    .single();
+
+  // Get plan limits
+  const planLimits = {
+    free: { apiKeys: 1, apiCalls: 100 },
+    starter: { apiKeys: 3, apiCalls: 10000 },
+    pro: { apiKeys: 10, apiCalls: 50000 },
+    growth: { apiKeys: -1, apiCalls: -1 } // unlimited
+  };
+
+  const limits = planLimits[profile?.subscription_plan || 'free'];
+  
+  return {
+    plan: profile?.subscription_plan || 'free',
+    limits,
+    currentUsage: currentUsage || { api_calls_used: 0, api_calls_limit: limits.apiCalls }
+  };
 }
 
 // Create new API key
@@ -47,21 +90,40 @@ export async function createApiKey(name: string, environment: string = 'producti
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('User not authenticated');
 
-  const profile = await getUserProfile();
+  // Check subscription limits
+  const { limits, currentUsage } = await checkSubscriptionLimits(user.id);
+  
+  // Check if user can create more API keys
+  const { data: existingKeys } = await supabase
+    .from('api_keys')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('is_active', true);
+
+  if (limits.apiKeys !== -1 && (existingKeys?.length || 0) >= limits.apiKeys) {
+    throw new Error(`API key limit reached. Your plan allows ${limits.apiKeys} active API keys.`);
+  }
+
   const apiKey = generateApiKey();
+  const apiSecret = generateApiSecret();
   const keyHash = await hashApiKey(apiKey);
   const keyPreview = createApiKeyPreview(apiKey);
+  
+  // Generate partner_id (UUID format)
+  const partnerId = crypto.randomUUID();
 
   const { data, error } = await supabase
     .from('api_keys')
     .insert({
       user_id: user.id,
-      partner_id: profile.partner_id,
-      name,
+      partner_id: partnerId,
+      key_name: name,
+      api_key: apiKey,
+      api_secret: apiSecret,
       key_hash: keyHash,
-      key_preview: keyPreview,
-      environment,
       is_active: true,
+      rate_limit_per_minute: 60,
+      rate_limit_per_day: limits.apiCalls === -1 ? 999999 : Math.min(limits.apiCalls / 30, 10000), // Daily limit based on plan
     })
     .select()
     .single();
@@ -71,6 +133,8 @@ export async function createApiKey(name: string, environment: string = 'producti
   return {
     ...data,
     key: apiKey, // Return the actual key only once
+    secret: apiSecret,
+    preview: keyPreview
   };
 }
 
@@ -80,14 +144,16 @@ export async function rotateApiKey(keyId: string) {
   if (!user) throw new Error('User not authenticated');
 
   const newApiKey = generateApiKey();
+  const newApiSecret = generateApiSecret();
   const newKeyHash = await hashApiKey(newApiKey);
   const newKeyPreview = createApiKeyPreview(newApiKey);
 
   const { data, error } = await supabase
     .from('api_keys')
     .update({
+      api_key: newApiKey,
+      api_secret: newApiSecret,
       key_hash: newKeyHash,
-      key_preview: newKeyPreview,
       last_used_at: null, // Reset last used timestamp
     })
     .eq('id', keyId)
@@ -100,6 +166,8 @@ export async function rotateApiKey(keyId: string) {
   return {
     ...data,
     key: newApiKey, // Return the new key only once
+    secret: newApiSecret,
+    preview: newKeyPreview
   };
 }
 
@@ -137,13 +205,22 @@ export async function getApiUsageStats() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('User not authenticated');
 
-  // Get total calls this month
+  // Get subscription usage for current month
+  const { data: subscriptionUsage } = await supabase
+    .from('subscription_usage')
+    .select('*')
+    .eq('user_id', user.id)
+    .gte('billing_period_start', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
+    .lte('billing_period_end', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
+    .single();
+
+  // Get total calls this month from api_usage table
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
 
   const { data: usageLogs, error: usageError } = await supabase
-    .from('api_usage_logs')
+    .from('api_usage')
     .select('*, api_keys!inner(user_id)')
     .eq('api_keys.user_id', user.id)
     .gte('created_at', startOfMonth.toISOString());
@@ -155,8 +232,8 @@ export async function getApiUsageStats() {
   const avgResponseTime = usageLogs?.reduce((sum, log) => sum + (log.response_time_ms || 0), 0) / (usageLogs?.length || 1) || 0;
 
   return {
-    callsThisMonth,
-    limit: 1670000, // Default limit
+    callsThisMonth: subscriptionUsage?.api_calls_used || callsThisMonth,
+    limit: subscriptionUsage?.api_calls_limit || 100,
     avgResponseTime: Math.round(avgResponseTime),
     successRate: callsThisMonth > 0 ? ((successfulCalls / callsThisMonth) * 100) : 100,
   };

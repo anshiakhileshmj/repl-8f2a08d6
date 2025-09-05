@@ -14,9 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 import { 
   getUserApiKeys, 
   getApiUsageStats, 
-  createApiKey, 
-  rotateApiKey, 
-  deleteApiKey 
+  createApiKey as createApiKeyUtil, 
+  rotateApiKey as rotateApiKeyUtil, 
+  deleteApiKey as deleteApiKeyUtil 
 } from "@/lib/apiKeyUtils";
 
 export function ApiManagement() {
@@ -44,7 +44,7 @@ export function ApiManagement() {
 
   const createMutation = useMutation({
     mutationFn: ({ name, environment }: { name: string; environment: string }) =>
-      createApiKey(name, environment),
+      createApiKeyUtil(name),  // environment is not needed for our schema
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["api-keys"] });
       queryClient.invalidateQueries({ queryKey: ["api-usage"] });
@@ -67,7 +67,7 @@ export function ApiManagement() {
   });
 
   const rotateMutation = useMutation({
-    mutationFn: (keyId: string) => rotateApiKey(keyId),
+    mutationFn: (keyId: string) => rotateApiKeyUtil(keyId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["api-keys"] });
       setSelectedApiKey(data.key);
@@ -87,7 +87,7 @@ export function ApiManagement() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (keyId: string) => deleteApiKey(keyId),
+    mutationFn: (keyId: string) => deleteApiKeyUtil(keyId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["api-keys"] });
       queryClient.invalidateQueries({ queryKey: ["api-usage"] });
@@ -254,16 +254,16 @@ export function ApiManagement() {
                         data-testid={`api-key-${apiKey.id}`}
                       >
                         <div className="text-sm font-medium text-card-foreground">
-                          {apiKey.name}
+                          {apiKey.key_name}
                         </div>
                         <div className="text-xs font-mono text-muted-foreground">
-                          {apiKey.key_preview}
+                          {apiKey.api_key ? `${apiKey.api_key.substring(0, 8)}...${apiKey.api_key.substring(apiKey.api_key.length - 4)}` : 'Hidden'}
                         </div>
                         <div className="text-xs text-muted-foreground capitalize">
-                          {apiKey.environment}
+                          Production
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {apiKey.usage_count?.toLocaleString() || 0}
+                          {apiKey.rate_limit_per_day?.toLocaleString() || 0}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {apiKey.last_used_at ? formatDate(apiKey.last_used_at) : "Never"}
@@ -276,7 +276,7 @@ export function ApiManagement() {
                             variant="ghost"
                             size="sm"
                             className="p-1 h-8 w-8"
-                            onClick={() => handleCopyApiKey(apiKey.key_preview)}
+                            onClick={() => handleCopyApiKey(apiKey.api_key || '')}
                             data-testid={`copy-key-${apiKey.id}`}
                           >
                             <Copy className="w-4 h-4" />
@@ -285,7 +285,7 @@ export function ApiManagement() {
                             variant="ghost"
                             size="sm"
                             className="p-1 h-8 w-8"
-                            onClick={() => handleViewApiKey(apiKey.key_preview)}
+                            onClick={() => handleViewApiKey(apiKey.api_key || '')}
                             data-testid={`view-key-${apiKey.id}`}
                           >
                             <Eye className="w-4 h-4" />
