@@ -43,9 +43,9 @@ export async function getUserProfile() {
   if (!user) throw new Error('User not authenticated');
 
   const { data: profile, error } = await supabase
-    .from('user_profiles')
+    .from('profiles')
     .select('*')
-    .eq('id', user.id)
+    .eq('user_id', user.id)
     .single();
 
   if (error) throw error;
@@ -54,12 +54,18 @@ export async function getUserProfile() {
 
 // Check subscription limits
 export async function checkSubscriptionLimits(userId: string) {
-  const { data: profile } = await supabase
-    .from('user_profiles')
-    .select('subscription_plan')
-    .eq('id', userId)
-    .single();
+  // For now, return default free plan limits since we're working with basic setup
+  // This can be expanded later when full subscription system is implemented
+  const planLimits = {
+    free: { apiKeys: 5, apiCalls: 1000 },
+    starter: { apiKeys: 10, apiCalls: 10000 },
+    pro: { apiKeys: 25, apiCalls: 50000 },
+    growth: { apiKeys: -1, apiCalls: -1 } // unlimited
+  };
 
+  const limits = planLimits.free; // Default to free for now
+  
+  // Try to get current usage
   const { data: currentUsage } = await supabase
     .from('subscription_usage')
     .select('api_calls_used, api_calls_limit')
@@ -67,19 +73,9 @@ export async function checkSubscriptionLimits(userId: string) {
     .gte('billing_period_start', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
     .lte('billing_period_end', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
     .single();
-
-  // Get plan limits
-  const planLimits = {
-    free: { apiKeys: 1, apiCalls: 100 },
-    starter: { apiKeys: 3, apiCalls: 10000 },
-    pro: { apiKeys: 10, apiCalls: 50000 },
-    growth: { apiKeys: -1, apiCalls: -1 } // unlimited
-  };
-
-  const limits = planLimits[profile?.subscription_plan || 'free'];
   
   return {
-    plan: profile?.subscription_plan || 'free',
+    plan: 'free',
     limits,
     currentUsage: currentUsage || { api_calls_used: 0, api_calls_limit: limits.apiCalls }
   };
