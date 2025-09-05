@@ -41,15 +41,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signUp = async (email: string, password: string, metadata?: any) => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: metadata
+    try {
+      console.log('Attempting signup with metadata:', metadata);
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: metadata
+        }
+      });
+      
+      if (error) {
+        console.error('Supabase auth error:', error);
+        return { error };
       }
-    });
-    return { error };
+      
+      console.log('Signup successful:', data);
+      return { error: null };
+    } catch (err) {
+      console.error('Unexpected signup error:', err);
+      return { error: { message: 'An unexpected error occurred during signup' } };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
