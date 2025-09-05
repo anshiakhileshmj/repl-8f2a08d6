@@ -2,7 +2,17 @@
 
 ## Overview
 
-This is a comprehensive AML compliance dashboard application built for fintechs, payment platforms, and financial institutions to monitor suspicious activities and manage compliance operations. The application provides real-time transaction monitoring, risk assessment, sanctions screening, case management, and regulatory reporting capabilities. It features a modern React frontend with an Express.js backend, using PostgreSQL for data persistence and Drizzle ORM for database operations.
+This is a comprehensive AML compliance dashboard application built for fintechs, payment platforms, and financial institutions to monitor suspicious activities and manage compliance operations. The application provides real-time transaction monitoring, risk assessment, sanctions screening, case management, and regulatory reporting capabilities. It features a modern React frontend with Supabase for authentication and data storage, plus a specialized Python FastAPI backend for blockchain risk assessment.
+
+## Current Status (September 2025)
+
+**✅ WORKING**: React frontend successfully running on port 5000 with Supabase integration
+**✅ WORKING**: Authentication system with login/signup functionality  
+**✅ WORKING**: Dashboard UI with all AML compliance components
+**✅ WORKING**: Vite development server configured for Replit environment (0.0.0.0:5000, allowedHosts: true)
+**📦 AVAILABLE**: Python FastAPI backend (relay-api) for blockchain risk assessment - can be started if needed
+**🔧 CONFIGURED**: All npm dependencies installed and working
+**🔧 CONFIGURED**: Python dependencies installed via uv/pip
 
 ## User Preferences
 

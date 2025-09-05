@@ -1,0 +1,439 @@
+i want to connect this frontend with supabase backend
+
+so auth (sign in and up) works with all user deatils being stored in backend
+this project can generate real apis securely and api keys should be stored in db that can work with endpoints available in relay-api and relay-api/app directory correctly. relay-api complete directory is already working correctly on render and its deployed their.
+all those transactions which go through my apis at users platform should be shown to user in transactions atab at dashboard.
+apis can be created, rotated, deleted and usage and other details can be seen by user.
+i've razorpay integartion so i can provide subscription based services to user like free, starter, pro and growth (starter, pro and growth are paid)
+free with limited api requests, starter with 10,000, pro with 50,000 checks and growth with unlimited and once user is on paid plan he can use all features perfectly. and all api usage and requests or success or failure should be shown in usage tab at billing component in dashboard.
+
+those parts of dashboard which show graph, analytics and heatmap and other graphs or charts should update regularly with api usage and data that is being received by my api
+ex - my user has used my api in his web3 payment app and launched it and a new user uses this web3 payment app to make a payment to some wallet address
+
+if payment successful then it this transaction should be shown in transactions component at my dashboard along with logs, if any receiver wallet is found in ofac sanctions then it should be shown in respective component at my dashboard which alert my user and in transactions and based on this all also and similary other components should also work and update like charts, heatmap and analysis whatever. okay
+
+tell me how to do this and if you can write me complete sql query to run on supabase without errors and update my frontend to use real row, table and column and policies from this query so they can be properly linked and can work.
+
+act on this but before this go through complete relay-api and relay-api/app directory asn see how my endpoints actually work
+
+these 2 sql queries are already executed in supabase
+
+1. 
+-- First, create the relay_logs table that your relay-API depends on
+CREATE TABLE IF NOT EXISTS public.relay_logs (
+    id SERIAL PRIMARY KEY,
+    partner_id TEXT NOT NULL,
+    chain TEXT,
+    from_addr TEXT,
+    to_addr TEXT NOT NULL,
+    decision TEXT NOT NULL, -- 'allowed' or 'blocked'
+    risk_band TEXT,
+    risk_score INTEGER DEFAULT 0,
+    reasons TEXT[] DEFAULT '{}',
+    idempotency_key TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Create indexes for performance
+CREATE INDEX IF NOT EXISTS idx_relay_logs_partner_id ON public.relay_logs(partner_id);
+CREATE INDEX IF NOT EXISTS idx_relay_logs_created_at ON public.relay_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_relay_logs_decision ON public.relay_logs(decision);
+CREATE INDEX IF NOT EXISTS idx_relay_logs_risk_score ON public.relay_logs(risk_score);
+
+-- Enable RLS
+ALTER TABLE public.relay_logs ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies
+CREATE POLICY "Users can view own relay logs" ON public.relay_logs
+    FOR SELECT USING (
+        EXISTS (
+            SELECT 1 FROM public.api_keys ak 
+            WHERE ak.partner_id = relay_logs.partner_id 
+            AND ak.user_id = auth.uid()
+        )
+    );
+
+CREATE POLICY "API can insert relay logs" ON public.relay_logs
+    FOR INSERT WITH CHECK (true); -- Your relay-api handles this with service key
+
+-------------------
+
+2.
+
+-- Enable necessary extensions
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Create custom types for enums
+CREATE TYPE subscription_plan AS ENUM ('free', 'starter', 'pro', 'growth');
+CREATE TYPE transaction_status AS ENUM ('pending', 'completed', 'failed', 'flagged');
+CREATE TYPE risk_level AS ENUM ('low', 'medium', 'high', 'critical');
+CREATE TYPE alert_severity AS ENUM ('low', 'medium', 'high', 'critical');
+CREATE TYPE case_status AS ENUM ('open', 'investigating', 'resolved', 'closed');
+CREATE TYPE case_priority AS ENUM ('low', 'medium', 'high', 'urgent');
+
+-- User profiles table (extends Supabase auth.users)
+CREATE TABLE public.user_profiles (
+    id UUID REFERENCES auth.users(id) PRIMARY KEY,
+    email TEXT NOT NULL,
+    full_name TEXT,
+    company_name TEXT,
+    phone TEXT,
+    country TEXT,
+    subscription_plan subscription_plan DEFAULT 'free',
+    subscription_status TEXT DEFAULT 'active',
+    razorpay_customer_id TEXT,
+    razorpay_subscription_id TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- API keys table
+CREATE TABLE public.api_keys (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE NOT NULL,
+    key_name TEXT NOT NULL,
+    api_key TEXT UNIQUE NOT NULL,
+    api_secret TEXT NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    last_used_at TIMESTAMP WITH TIME ZONE,
+    rate_limit_per_minute INTEGER DEFAULT 60,
+    rate_limit_per_day INTEGER DEFAULT 1000,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Transactions table
+CREATE TABLE public.transactions (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE NOT NULL,
+    api_key_id UUID REFERENCES public.api_keys(id) ON DELETE SET NULL,
+    transaction_hash TEXT,
+    from_address TEXT NOT NULL,
+    to_address TEXT NOT NULL,
+    amount DECIMAL(20, 8),
+    currency TEXT DEFAULT 'ETH',
+    blockchain TEXT DEFAULT 'ethereum',
+    status transaction_status DEFAULT 'pending',
+    risk_score INTEGER CHECK (risk_score >= 0 AND risk_score <= 100),
+    risk_level risk_level,
+    is_sanctioned BOOLEAN DEFAULT false,
+    sanctions_match_reason TEXT,
+    customer_name TEXT,
+    customer_id TEXT,
+    description TEXT,
+    metadata JSONB DEFAULT '{}',
+    processed_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Alerts table
+CREATE TABLE public.alerts (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE NOT NULL,
+    transaction_id UUID REFERENCES public.transactions(id) ON DELETE SET NULL,
+    alert_type TEXT NOT NULL,
+    severity alert_severity NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    is_resolved BOOLEAN DEFAULT false,
+    assigned_to TEXT,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolved_by UUID REFERENCES public.user_profiles(id),
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Cases table
+CREATE TABLE public.cases (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE NOT NULL,
+    case_number TEXT UNIQUE NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT,
+    status case_status DEFAULT 'open',
+    priority case_priority DEFAULT 'medium',
+    assigned_to TEXT,
+    created_by UUID REFERENCES public.user_profiles(id),
+    related_transactions UUID[] DEFAULT '{}',
+    related_alerts UUID[] DEFAULT '{}',
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Reports table
+CREATE TABLE public.reports (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE NOT NULL,
+    title TEXT NOT NULL,
+    report_type TEXT NOT NULL,
+    description TEXT,
+    status TEXT DEFAULT 'generating',
+    generated_by UUID REFERENCES public.user_profiles(id),
+    file_url TEXT,
+    parameters JSONB DEFAULT '{}',
+    data JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    completed_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Sanctioned wallets table
+CREATE TABLE public.sanctioned_wallets (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE NOT NULL,
+    address TEXT NOT NULL,
+    reason TEXT NOT NULL,
+    source TEXT NOT NULL,
+    added_by UUID REFERENCES public.user_profiles(id),
+    is_active BOOLEAN DEFAULT true,
+    metadata JSONB DEFAULT '{}',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- API usage tracking table
+CREATE TABLE public.api_usage (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE NOT NULL,
+    api_key_id UUID REFERENCES public.api_keys(id) ON DELETE SET NULL,
+    endpoint TEXT NOT NULL,
+    method TEXT NOT NULL,
+    status_code INTEGER,
+    response_time_ms INTEGER,
+    request_size_bytes INTEGER,
+    response_size_bytes INTEGER,
+    ip_address INET,
+    user_agent TEXT,
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Subscription usage table
+CREATE TABLE public.subscription_usage (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE NOT NULL,
+    billing_period_start DATE NOT NULL,
+    billing_period_end DATE NOT NULL,
+    api_calls_used INTEGER DEFAULT 0,
+    api_calls_limit INTEGER NOT NULL,
+    transactions_processed INTEGER DEFAULT 0,
+    storage_used_gb DECIMAL(10, 3) DEFAULT 0,
+    overage_charges DECIMAL(10, 2) DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE(user_id, billing_period_start)
+);
+
+-- Invoices table for Razorpay integration
+CREATE TABLE public.invoices (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE NOT NULL,
+    razorpay_invoice_id TEXT UNIQUE,
+    razorpay_payment_id TEXT,
+    amount DECIMAL(10, 2) NOT NULL,
+    currency TEXT DEFAULT 'INR',
+    status TEXT NOT NULL,
+    billing_period_start DATE,
+    billing_period_end DATE,
+    description TEXT,
+    metadata JSONB DEFAULT '{}',
+    paid_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
+-- Analytics data table for charts and heatmaps
+CREATE TABLE public.analytics_data (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE NOT NULL,
+    metric_type TEXT NOT NULL, -- 'transactions', 'risk_distribution', 'geographic', etc.
+    date_bucket DATE NOT NULL,
+    data JSONB NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE(user_id, metric_type, date_bucket)
+);
+
+-- Create indexes for better performance
+CREATE INDEX idx_transactions_user_id ON public.transactions(user_id);
+CREATE INDEX idx_transactions_created_at ON public.transactions(created_at);
+CREATE INDEX idx_transactions_risk_level ON public.transactions(risk_level);
+CREATE INDEX idx_transactions_status ON public.transactions(status);
+CREATE INDEX idx_api_usage_user_id ON public.api_usage(user_id);
+CREATE INDEX idx_api_usage_created_at ON public.api_usage(created_at);
+CREATE INDEX idx_alerts_user_id ON public.alerts(user_id);
+CREATE INDEX idx_alerts_severity ON public.alerts(severity);
+CREATE INDEX idx_sanctioned_wallets_address ON public.sanctioned_wallets(address);
+CREATE INDEX idx_analytics_user_metric_date ON public.analytics_data(user_id, metric_type, date_bucket);
+
+-- Enable Row Level Security (RLS)
+ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.api_keys ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.alerts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.cases ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.sanctioned_wallets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.api_usage ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subscription_usage ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.invoices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.analytics_data ENABLE ROW LEVEL SECURITY;
+
+-- Create RLS policies
+-- User profiles policies
+CREATE POLICY "Users can view own profile" ON public.user_profiles
+    FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" ON public.user_profiles
+    FOR UPDATE USING (auth.uid() = id);
+
+-- API keys policies
+CREATE POLICY "Users can manage own API keys" ON public.api_keys
+    FOR ALL USING (auth.uid() = user_id);
+
+-- Transactions policies
+CREATE POLICY "Users can view own transactions" ON public.transactions
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "API can insert transactions" ON public.transactions
+    FOR INSERT WITH CHECK (true); -- This will be handled by your relay-api with service key
+
+-- Alerts policies
+CREATE POLICY "Users can manage own alerts" ON public.alerts
+    FOR ALL USING (auth.uid() = user_id);
+
+-- Cases policies
+CREATE POLICY "Users can manage own cases" ON public.cases
+    FOR ALL USING (auth.uid() = user_id);
+
+-- Reports policies
+CREATE POLICY "Users can manage own reports" ON public.reports
+    FOR ALL USING (auth.uid() = user_id);
+
+-- Sanctioned wallets policies
+CREATE POLICY "Users can manage own sanctioned wallets" ON public.sanctioned_wallets
+    FOR ALL USING (auth.uid() = user_id);
+
+-- API usage policies
+CREATE POLICY "Users can view own API usage" ON public.api_usage
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "API can log usage" ON public.api_usage
+    FOR INSERT WITH CHECK (true); -- This will be handled by your relay-api
+
+-- Subscription usage policies
+CREATE POLICY "Users can view own subscription usage" ON public.subscription_usage
+    FOR SELECT USING (auth.uid() = user_id);
+
+-- Invoices policies
+CREATE POLICY "Users can view own invoices" ON public.invoices
+    FOR SELECT USING (auth.uid() = user_id);
+
+-- Analytics data policies
+CREATE POLICY "Users can view own analytics" ON public.analytics_data
+    FOR SELECT USING (auth.uid() = user_id);
+
+-- Create functions for automatic case number generation
+CREATE OR REPLACE FUNCTION generate_case_number()
+RETURNS TEXT AS $$
+DECLARE
+    new_number TEXT;
+BEGIN
+    SELECT 'CASE-' || LPAD((COUNT(*) + 1)::TEXT, 6, '0')
+    INTO new_number
+    FROM public.cases;
+    
+    RETURN new_number;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger to auto-generate case numbers
+CREATE OR REPLACE FUNCTION set_case_number()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.case_number IS NULL THEN
+        NEW.case_number := generate_case_number();
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_set_case_number
+    BEFORE INSERT ON public.cases
+    FOR EACH ROW
+    EXECUTE FUNCTION set_case_number();
+
+-- Function to update subscription usage
+CREATE OR REPLACE FUNCTION update_subscription_usage(
+    p_user_id UUID,
+    p_api_calls INTEGER DEFAULT 1
+)
+RETURNS VOID AS $$
+DECLARE
+    current_period_start DATE;
+    current_period_end DATE;
+    user_plan subscription_plan;
+    api_limit INTEGER;
+BEGIN
+    -- Get current billing period (monthly)
+    current_period_start := DATE_TRUNC('month', CURRENT_DATE);
+    current_period_end := (current_period_start + INTERVAL '1 month' - INTERVAL '1 day')::DATE;
+    
+    -- Get user's subscription plan
+    SELECT subscription_plan INTO user_plan
+    FROM public.user_profiles
+    WHERE id = p_user_id;
+    
+    -- Set API limits based on plan
+    CASE user_plan
+        WHEN 'free' THEN api_limit := 100;
+        WHEN 'starter' THEN api_limit := 10000;
+        WHEN 'pro' THEN api_limit := 50000;
+        WHEN 'growth' THEN api_limit := 2147483647; -- Unlimited (max int)
+        ELSE api_limit := 100;
+    END CASE;
+    
+    -- Insert or update usage record
+    INSERT INTO public.subscription_usage (
+        user_id, billing_period_start, billing_period_end, 
+        api_calls_used, api_calls_limit
+    )
+    VALUES (
+        p_user_id, current_period_start, current_period_end,
+        p_api_calls, api_limit
+    )
+    ON CONFLICT (user_id, billing_period_start)
+    DO UPDATE SET
+        api_calls_used = public.subscription_usage.api_calls_used + p_api_calls,
+        updated_at = timezone('utc'::text, now());
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to create user profile on signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.user_profiles (id, email, full_name)
+    VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'full_name');
+    
+    -- Create initial subscription usage record
+    PERFORM update_subscription_usage(NEW.id, 0);
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger for new user signup
+CREATE OR REPLACE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+
+now do this 
+
+go through the codebase and build below things correctly.
+
+Update frontend authentication to use Supabase Auth
+Implement API key management with database integration
+Set up subscription plans and Razorpay integration
+Update dashboard components to use real Supabase data
+Configure real-time updates for transactions and analytics
+
