@@ -1,0 +1,356 @@
+the supabse db for ehich i've shared anon and url sa below queries already executed
+
+How It All Works Together:
+User Registration: When a user signs up, the trigger automatically creates a developer profile with a unique partner_id
+API Key Creation: Frontend calls generate_api_key(), hashes it with hash_api_key(), and stores both the hash and temporarily the raw key
+API Key Rotation: Updates the existing record with a new generated key and hash
+API Key Deletion: Simply removes the record from the database
+Authentication: Backend validates API keys by hashing the provided key and matching against stored hashes
+Rate Limiting: check_api_rate_limit() enforces usage limits per minute
+Usage Tracking: log_api_usage() records every API call for analytics
+Security: RLS policies ensure users only access their own data, and raw keys are never permanently stored
+
+Query 1 already executed in database
+-- Create developer profiles table
+CREATE TABLE public.developer_profiles (
+id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+user_id uuid NOT NULL UNIQUE,
+first_name text,
+last_name text,
+company_name text,
+job_title text,
+phone text,
+country text,
+business_type text,
+website text,
+api_usage_plan text DEFAULT 'free'::text,
+monthly_request_limit integer DEFAULT 1000,
+partner_id text NOT NULL,
+created_at timestamp with time zone DEFAULT now(),
+updated_at timestamp with time zone DEFAULT now()
+);
+
+-- Enable RLS on developer profiles
+ALTER TABLE public.developer_profiles ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can manage their own profile
+CREATE POLICY "Users can manage their own developer profile"
+ON public.developer_profiles
+FOR ALL
+USING (auth.uid() = user_id);
+
+Query 2 already executed in database
+-- Create API keys table
+CREATE TABLE public.api_keys (
+id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+user_id uuid,
+name text NOT NULL,
+key_hash text NOT NULL,
+key text, -- Temporarily stores the raw key for display
+partner_id text,
+is_active boolean NOT NULL DEFAULT true,
+rate_limit_per_minute integer NOT NULL DEFAULT 60,
+expires_at timestamp with time zone,
+last_used_at timestamp with time zone,
+created_at timestamp with time zone NOT NULL DEFAULT now(),
+active boolean DEFAULT true
+);
+
+-- Enable RLS on API keys
+ALTER TABLE public.api_keys ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can manage their own API keys
+CREATE POLICY "Users can manage their own API keys"
+ON public.api_keys
+FOR ALL
+USING (auth.uid() = user_id);
+
+Query 3 already executed in database
+-- Fix the generate_api_key function to use a working method for generating random strings
+CREATE OR REPLACE FUNCTION public.generate_api_key()
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $function$
+DECLARE
+key_prefix TEXT := 'wm_';
+random_part TEXT;
+full_key TEXT;
+BEGIN
+-- Generate random 32 character string using extensions/pgcrypto gen_random_uuid
+random_part := replace(gen_random_uuid()::text, '-', '');
+-- Add more randomness by concatenating another UUID
+random_part := random_part || replace(gen_random_uuid()::text, '-', '');
+-- Take first 32 characters and make it uppercase for better readability
+random_part := upper(substring(random_part, 1, 32));
+full_key := key_prefix || random_part;
+RETURN full_key;
+END;
+$function$
+
+Query 4 already executed in database
+-- Create API usage tracking table
+CREATE TABLE public.api_usage (
+id uuid NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+api_key_id uuid NOT NULL,
+endpoint text NOT NULL,
+ip_address text,
+timestamp timestamp with time zone NOT NULL DEFAULT now(),
+response_time_ms integer,
+status_code integer
+);
+
+-- Enable RLS on API usage
+ALTER TABLE public.api_usage ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policy: Users can view their own API usage
+CREATE POLICY "Users can view their own API usage"
+ON public.api_usage
+FOR SELECT
+USING (EXISTS (
+SELECT 1 FROM api_keys
+WHERE api_keys.id = api_usage.api_key_id
+AND api_keys.user_id = auth.uid()
+));
+
+Query 5 already executed in database
+-- Function to generate secure API keys
+CREATE OR REPLACE FUNCTION public.generate_api_key()
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+DECLARE
+key_prefix TEXT := 'wm_';
+random_part TEXT;
+full_key TEXT;
+BEGIN
+-- Generate random 32 character string
+random_part := replace(gen_random_uuid()::text, '-', '');
+random_part := random_part || replace(gen_random_uuid()::text, '-', '');
+random_part := upper(substring(random_part, 1, 32));
+full_key := key_prefix || random_part;
+RETURN full_key;
+END;
+$$;
+
+-- Function to hash API keys securely
+CREATE OR REPLACE FUNCTION public.hash_api_key(api_key text)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+RETURN encode(sha256(api_key::bytea), 'hex');
+END;
+$$;
+
+-- Function to generate unique partner IDs
+CREATE OR REPLACE FUNCTION public.generate_partner_id()
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+new_partner_id TEXT;
+id_exists BOOLEAN;
+BEGIN
+LOOP
+new_partner_id := 'partner_' || upper(substring(replace(gen_random_uuid()::text, '-', ''), 1, 8));
+SELECT EXISTS(SELECT 1 FROM developer_profiles WHERE partner_id = new_partner_id) INTO id_exists;
+IF NOT id_exists THEN
+EXIT;
+END IF;
+END LOOP;
+RETURN new_partner_id;
+END;
+$$;
+
+Query 6 already executed in database
+-- Function to check API rate limits
+CREATE OR REPLACE FUNCTION public.check_api_rate_limit(api_key_hash text, endpoint text)
+RETURNS boolean
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+key_record RECORD;
+usage_count INTEGER;
+rate_limit INTEGER;
+BEGIN
+-- Get API key details
+SELECT * INTO key_record
+FROM api_keys
+WHERE key_hash = api_key_hash AND is_active = true
+AND (expires_at IS NULL OR expires_at > now());
+
+IF NOT FOUND THEN
+RETURN false;
+END IF;
+
+-- Get rate limit for this key
+rate_limit := key_record.rate_limit_per_minute;
+
+-- Count usage in the last minute
+SELECT COUNT(*) INTO usage_count
+FROM api_usage
+WHERE api_key_id = key_record.id
+AND endpoint = check_api_rate_limit.endpoint
+AND timestamp > now() - interval '1 minute';
+
+-- Update last_used_at
+UPDATE api_keys
+SET last_used_at = now()
+WHERE id = key_record.id;
+
+RETURN usage_count < rate_limit;
+END;
+$$;
+
+-- Function to log API usage
+CREATE OR REPLACE FUNCTION public.log_api_usage(api_key_hash text, endpoint_path text, ip_addr text, status_code integer, response_time_ms integer)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+key_id uuid;
+BEGIN
+SELECT id INTO key_id
+FROM api_keys
+WHERE key_hash = api_key_hash;
+
+IF FOUND THEN
+INSERT INTO api_usage (api_key_id, endpoint, ip_address, status_code, response_time_ms)
+VALUES (key_id, endpoint_path, ip_addr, status_code, response_time_ms);
+END IF;
+END;
+$$;
+
+Query 6 already executed in database
+-- Function to handle new user registration
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO 'public'
+AS $$
+BEGIN
+INSERT INTO public.developer_profiles (
+user_id,
+first_name,
+last_name,
+company_name,
+job_title,
+phone,
+country,
+business_type,
+website,
+api_usage_plan,
+monthly_request_limit,
+partner_id
+)
+VALUES (
+NEW.id,
+COALESCE(NEW.raw_user_meta_data ->> 'first_name', ''),
+COALESCE(NEW.raw_user_meta_data ->> 'last_name', ''),
+COALESCE(NEW.raw_user_meta_data ->> 'company_name', ''),
+COALESCE(NEW.raw_user_meta_data ->> 'job_title', ''),
+COALESCE(NEW.raw_user_meta_data ->> 'phone', ''),
+COALESCE(NEW.raw_user_meta_data ->> 'country', ''),
+COALESCE(NEW.raw_user_meta_data ->> 'business_type', ''),
+COALESCE(NEW.raw_user_meta_data ->> 'website', ''),
+'free',
+1000,
+generate_partner_id()
+);
+RETURN NEW;
+END;
+$$;
+
+-- Trigger to auto-create developer profile on user signup
+CREATE TRIGGER on_auth_user_created
+AFTER INSERT ON auth.users
+FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+Query 7 already executed in database
+-- Create risk_scores table
+CREATE TABLE public.risk_scores (
+wallet text NOT NULL,
+score integer NOT NULL DEFAULT 0,
+band text NOT NULL DEFAULT 'LOW'::text,
+confidence numeric DEFAULT 1.0,
+metadata jsonb,
+updated_at timestamp with time zone NOT NULL DEFAULT now(),
+last_updated timestamp with time zone DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE public.risk_scores ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Allow public read access to risk scores"
+ON public.risk_scores FOR SELECT
+USING (true);
+
+CREATE POLICY "Allow service role full access to risk scores"
+ON public.risk_scores FOR ALL
+USING ((auth.jwt() ->> 'role'::text) = 'service_role'::text);
+
+-- Function to update risk scores (called from Python backend)
+CREATE OR REPLACE FUNCTION public.update_risk_score(
+wallet_addr text,
+new_score integer,
+risk_band text,
+confidence_level numeric DEFAULT 1.0,
+risk_metadata jsonb DEFAULT '{}'::jsonb
+) RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+INSERT INTO public.risk_scores (wallet, score, band, confidence, metadata, updated_at)
+VALUES (wallet_addr, new_score, risk_band, confidence_level, risk_metadata, now())
+ON CONFLICT (wallet)
+DO UPDATE SET
+score = EXCLUDED.score,
+band = EXCLUDED.band,
+confidence = EXCLUDED.confidence,
+metadata = EXCLUDED.metadata,
+updated_at = now();
+END;
+$$;
+
+how our frontend at api mangement section at dashboard page should call and generate perfect api keys?
+Frontend API Key Generation
+Frontend doesn't call generate_api_key() database function directly. Instead:
+
+Frontend generates the key locally:
+
+const generateApiKey = () => {
+const prefix = 'wm_';
+const randomPart = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+.map(b => b.toString(16).padStart(2, '0')).join('').toUpperCase();
+return prefix + randomPart;
+};
+Frontend hashes the key and inserts it:
+
+const createApiKey = async () => {
+const apiKey = generateApiKey(); // Generate locally
+const keyHash = await hashApiKey(apiKey); // Hash locally
+
+// Insert into database via Supabase client
+const { data, error } = await supabase.from('api_keys').insert({
+name: newKeyName.trim(),
+key: apiKey,
+key_hash: keyHash,
+partner_id: profile.partner_id,
+user_id: user?.id,
+is_active: true,
+rate_limit_per_minute: 60
+}).select().single();
+};
+Backend Response: Supabase returns the inserted record via REST API, handled automatically by the Supabase client.
