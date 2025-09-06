@@ -16,83 +16,80 @@ export type Database = {
     Tables: {
       api_keys: {
         Row: {
+          active: boolean | null
           created_at: string
-          environment: string
+          expires_at: string | null
           id: string
           is_active: boolean
+          key: string | null
           key_hash: string
-          key_preview: string
           last_used_at: string | null
           name: string
-          partner_id: string
-          updated_at: string
-          usage_count: number
-          user_id: string
+          partner_id: string | null
+          rate_limit_per_minute: number
+          user_id: string | null
         }
         Insert: {
+          active?: boolean | null
           created_at?: string
-          environment?: string
+          expires_at?: string | null
           id?: string
           is_active?: boolean
+          key?: string | null
           key_hash: string
-          key_preview: string
           last_used_at?: string | null
           name: string
-          partner_id: string
-          updated_at?: string
-          usage_count?: number
-          user_id: string
+          partner_id?: string | null
+          rate_limit_per_minute?: number
+          user_id?: string | null
         }
         Update: {
+          active?: boolean | null
           created_at?: string
-          environment?: string
+          expires_at?: string | null
           id?: string
           is_active?: boolean
+          key?: string | null
           key_hash?: string
-          key_preview?: string
           last_used_at?: string | null
           name?: string
-          partner_id?: string
-          updated_at?: string
-          usage_count?: number
-          user_id?: string
+          partner_id?: string | null
+          rate_limit_per_minute?: number
+          user_id?: string | null
         }
         Relationships: []
       }
-      api_usage_logs: {
+      api_usage: {
         Row: {
           api_key_id: string
-          created_at: string
           endpoint: string
           id: string
-          method: string
-          partner_id: string
+          ip_address: string | null
           response_time_ms: number | null
-          status_code: number
+          status_code: number | null
+          timestamp: string
         }
         Insert: {
           api_key_id: string
-          created_at?: string
           endpoint: string
           id?: string
-          method?: string
-          partner_id: string
+          ip_address?: string | null
           response_time_ms?: number | null
-          status_code: number
+          status_code?: number | null
+          timestamp?: string
         }
         Update: {
           api_key_id?: string
-          created_at?: string
           endpoint?: string
           id?: string
-          method?: string
-          partner_id?: string
+          ip_address?: string | null
           response_time_ms?: number | null
-          status_code?: number
+          status_code?: number | null
+          timestamp?: string
         }
         Relationships: [
           {
-            foreignKeyName: "api_usage_logs_api_key_id_fkey"
+            foreignKeyName: "api_usage_api_key_id_fkey"
             columns: ["api_key_id"]
             isOneToOne: false
             referencedRelation: "api_keys"
@@ -100,33 +97,87 @@ export type Database = {
           },
         ]
       }
-      profiles: {
+      developer_profiles: {
         Row: {
-          created_at: string
-          email: string | null
-          full_name: string | null
+          api_usage_plan: string | null
+          business_type: string | null
+          company_name: string | null
+          country: string | null
+          created_at: string | null
+          first_name: string | null
           id: string
+          job_title: string | null
+          last_name: string | null
+          monthly_request_limit: number | null
           partner_id: string
-          updated_at: string
+          phone: string | null
+          updated_at: string | null
           user_id: string
+          website: string | null
         }
         Insert: {
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
+          api_usage_plan?: string | null
+          business_type?: string | null
+          company_name?: string | null
+          country?: string | null
+          created_at?: string | null
+          first_name?: string | null
           id?: string
+          job_title?: string | null
+          last_name?: string | null
+          monthly_request_limit?: number | null
           partner_id: string
-          updated_at?: string
+          phone?: string | null
+          updated_at?: string | null
           user_id: string
+          website?: string | null
         }
         Update: {
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
+          api_usage_plan?: string | null
+          business_type?: string | null
+          company_name?: string | null
+          country?: string | null
+          created_at?: string | null
+          first_name?: string | null
           id?: string
+          job_title?: string | null
+          last_name?: string | null
+          monthly_request_limit?: number | null
           partner_id?: string
-          updated_at?: string
+          phone?: string | null
+          updated_at?: string | null
           user_id?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      risk_scores: {
+        Row: {
+          band: string
+          confidence: number | null
+          last_updated: string | null
+          metadata: Json | null
+          score: number
+          updated_at: string
+          wallet: string
+        }
+        Insert: {
+          band?: string
+          confidence?: number | null
+          last_updated?: string | null
+          metadata?: Json | null
+          score?: number
+          updated_at?: string
+          wallet: string
+        }
+        Update: {
+          band?: string
+          confidence?: number | null
+          last_updated?: string | null
+          metadata?: Json | null
+          score?: number
+          updated_at?: string
+          wallet?: string
         }
         Relationships: []
       }
@@ -136,20 +187,28 @@ export type Database = {
     }
     Functions: {
       check_api_rate_limit: {
-        Args: { p_api_key_hash: string; p_limit_per_hour?: number }
+        Args: { api_key_hash: string; endpoint: string }
         Returns: boolean
+      }
+      generate_api_key: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       generate_partner_id: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      hash_api_key: {
+        Args: { api_key: string }
+        Returns: string
+      }
       log_api_usage: {
         Args: {
-          p_api_key_hash: string
-          p_endpoint: string
-          p_method?: string
-          p_response_time_ms?: number
-          p_status_code?: number
+          api_key_hash: string
+          endpoint_path: string
+          ip_addr: string
+          response_time_ms: number
+          status_code: number
         }
         Returns: undefined
       }
