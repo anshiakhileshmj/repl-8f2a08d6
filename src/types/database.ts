@@ -18,15 +18,14 @@ export interface ApiKey {
   id: string;
   user_id: string;
   partner_id: string;
-  key_name: string;
-  key?: string;
-  key_hash?: string;
+  name: string;
+  key: string;
+  key_hash: string;
   is_active: boolean;
-  last_used_at?: string;
-  rate_limit_per_minute: number;
-  rate_limit_per_day: number;
   created_at: string;
-  expires_at?: string;
+  last_used_at: string | null;
+  expires_at: string | null;
+  rate_limit_per_minute: number;
 }
 
 export interface Transaction {
@@ -149,4 +148,12 @@ export interface RelayLog {
   reasons: string[];
   idempotency_key?: string;
   created_at: string;
+}
+
+export interface DeveloperProfile {
+  partner_id: string;
+  company_name: string | null;
+  website: string | null;
+  api_usage_plan: string;
+  monthly_request_limit: number;
 }
