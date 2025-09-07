@@ -43,7 +43,7 @@ export async function getUserProfile() {
   if (!user) throw new Error('User not authenticated');
 
   const { data: profile, error } = await supabase
-    .from('profiles')
+    .from('developer_profiles')
     .select('*')
     .eq('user_id', user.id)
     .single();
@@ -67,7 +67,7 @@ export async function checkSubscriptionLimits(userId: string) {
   
   // Try to get current usage
   const { data: currentUsage } = await supabase
-    .from('subscription_usage')
+    .from('api_usage')
     .select('api_calls_used, api_calls_limit')
     .eq('user_id', userId)
     .gte('billing_period_start', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
@@ -113,9 +113,9 @@ export async function createApiKey(name: string, environment: string = 'producti
     .insert({
       user_id: user.id,
       partner_id: partnerId,
-      key_name: name,
-      api_key: apiKey,
-      api_secret: apiSecret,
+      name: name, // changed from key_name to name
+      key: apiKey, // changed from api_key to key
+      secret: apiSecret, // changed from api_secret to secret
       key_hash: keyHash,
       is_active: true,
       rate_limit_per_minute: 60,
@@ -202,12 +202,13 @@ export async function getApiUsageStats() {
   if (!user) throw new Error('User not authenticated');
 
   // Get subscription usage for current month
+  // Replace 'subscription_usage' with a valid table name from your Supabase schema, e.g., 'api_usage'
   const { data: subscriptionUsage } = await supabase
-    .from('subscription_usage')
+    .from('api_usage') // <-- replace with the correct table name if different
     .select('*')
     .eq('user_id', user.id)
-    .gte('billing_period_start', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
-    .lte('billing_period_end', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
+    .gte('created_at', new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0])
+    .lte('created_at', new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0])
     .single();
 
   // Get total calls this month from api_usage table
@@ -224,12 +225,12 @@ export async function getApiUsageStats() {
   if (usageError) throw usageError;
 
   const callsThisMonth = usageLogs?.length || 0;
-  const successfulCalls = usageLogs?.filter(log => log.status_code >= 200 && log.status_code < 300).length || 0;
+  const successfulCalls = usageLogs?.filter(log => log.status_code !== null && log.status_code !== undefined && log.status_code >= 200 && log.status_code < 300).length || 0;
   const avgResponseTime = usageLogs?.reduce((sum, log) => sum + (log.response_time_ms || 0), 0) / (usageLogs?.length || 1) || 0;
 
   return {
-    callsThisMonth: subscriptionUsage?.api_calls_used || callsThisMonth,
-    limit: subscriptionUsage?.api_calls_limit || 100,
+    callsThisMonth: callsThisMonth,
+    limit: (subscriptionUsage && 'api_calls_limit' in subscriptionUsage ? (subscriptionUsage as any).api_calls_limit : 100),
     avgResponseTime: Math.round(avgResponseTime),
     successRate: callsThisMonth > 0 ? ((successfulCalls / callsThisMonth) * 100) : 100,
   };
