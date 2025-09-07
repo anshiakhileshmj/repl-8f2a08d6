@@ -11,18 +11,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus, Copy, Eye, MoreVertical, RotateCcw, Trash2 } from "lucide-react";
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { generateApiKey, hashApiKey } from '@/lib/apiKeyUtils';
+import { generateApiKey, hashApiKey, createApiKeyPreview } from "@/lib/apiKeyUtils";
 import { toast } from "@/hooks/use-toast";
 
 interface ApiKey {
   id: string;
   name: string;
-  key_preview: string;
-  environment: string;
-  usage_count: number;
+  key: string | null;
   last_used_at: string | null;
   created_at: string;
   is_active: boolean;
+  rate_limit_per_minute: number;
+  // Add partner_id if you use it elsewhere
+  // partner_id?: string | null;
 }
 
 export function ApiKeyManagement() {
@@ -31,32 +32,28 @@ export function ApiKeyManagement() {
   const [loading, setLoading] = useState(true);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newKeyName, setNewKeyName] = useState('');
-  const [newKeyEnvironment, setNewKeyEnvironment] = useState('production');
   const [showApiKey, setShowApiKey] = useState<string | null>(null);
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
 
   // Fetch API keys
   const fetchApiKeys = async () => {
     if (!user) return;
-    
     try {
       const { data, error } = await supabase
         .from('api_keys')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-
       if (error) throw error;
       setApiKeys(data || []);
     } catch (error) {
-      console.error('Error fetching API keys:', error);
       toast({
         title: "Error",
-        description: "Failed to load API keys",
+        description: "Failed to fetch API keys",
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setLoading(false); // <-- Ensure loading is set to false
     }
   };
 
@@ -69,14 +66,14 @@ export function ApiKeyManagement() {
     if (!user || !newKeyName.trim()) return;
 
     try {
-      // Get user profile for partner_id
-      const { data: profile } = await supabase
-        .from('profiles')
+      // Get developer profile for partner_id
+      const { data: profile, error: profileError } = await supabase
+        .from('developer_profiles')
         .select('partner_id')
         .eq('user_id', user.id)
         .single();
 
-      if (!profile) {
+      if (profileError || !profile) {
         toast({
           title: "Error",
           description: "Profile not found. Please contact support.",
@@ -86,34 +83,33 @@ export function ApiKeyManagement() {
       }
 
       const apiKey = generateApiKey();
-      const hashedKey = await hashApiKey(apiKey);
-      const keyPreview = `${apiKey.substring(0, 8)}...${apiKey.substring(-4)}`;
+      const keyHash = await hashApiKey(apiKey);
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('api_keys')
         .insert({
           user_id: user.id,
           partner_id: profile.partner_id,
-          name: newKeyName,
-          key_hash: hashedKey,
-          key_preview: keyPreview,
-          environment: newKeyEnvironment,
-        });
+          name: newKeyName.trim(),
+          key: apiKey,
+          key_hash: keyHash,
+          is_active: true,
+          rate_limit_per_minute: 60
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      setGeneratedKey(apiKey);
+      setApiKeys(prev => [data, ...prev]);
+      setGeneratedKey(apiKey); // <-- Show the key to the user
       setNewKeyName('');
-      setNewKeyEnvironment('production');
       setShowCreateDialog(false);
-      fetchApiKeys();
-
       toast({
         title: "API Key Created",
         description: "Your new API key has been generated. Make sure to copy it now!",
       });
     } catch (error) {
-      console.error('Error creating API key:', error);
       toast({
         title: "Error",
         description: "Failed to create API key",
@@ -123,7 +119,8 @@ export function ApiKeyManagement() {
   };
 
   // Copy to clipboard
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string | null) => {
+    if (!text) return;
     navigator.clipboard.writeText(text);
     toast({
       title: "Copied",
@@ -136,20 +133,19 @@ export function ApiKeyManagement() {
     try {
       const newKey = generateApiKey();
       const hashedKey = await hashApiKey(newKey);
-      const keyPreview = `${newKey.substring(0, 8)}...${newKey.substring(-4)}`;
 
       const { error } = await supabase
         .from('api_keys')
         .update({
+          key: newKey,
           key_hash: hashedKey,
-          key_preview: keyPreview,
           last_used_at: null,
         })
         .eq('id', keyId);
 
       if (error) throw error;
 
-      setGeneratedKey(newKey);
+      setGeneratedKey(newKey); // <-- Show the new key to the user
       fetchApiKeys();
 
       toast({
@@ -274,19 +270,6 @@ export function ApiKeyManagement() {
                     onChange={(e) => setNewKeyName(e.target.value)}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="environment">Environment</Label>
-                  <Select value={newKeyEnvironment} onValueChange={setNewKeyEnvironment}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="production">Production</SelectItem>
-                      <SelectItem value="staging">Staging</SelectItem>
-                      <SelectItem value="development">Development</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <Button 
                   onClick={handleCreateApiKey} 
                   disabled={!newKeyName.trim()}
@@ -309,10 +292,10 @@ export function ApiKeyManagement() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Key Preview</TableHead>
-                  <TableHead>Environment</TableHead>
-                  <TableHead>Usage</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Last Used</TableHead>
                   <TableHead>Created</TableHead>
+                  <TableHead>Rate Limit</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -323,12 +306,12 @@ export function ApiKeyManagement() {
                     <TableCell>
                       <div className="flex items-center space-x-2">
                         <code className="text-sm bg-muted px-2 py-1 rounded">
-                          {apiKey.key_preview}
+                          {apiKey.key ? `${apiKey.key.substring(0, 8)}...${apiKey.key.substring(apiKey.key.length - 4)}` : ''}
                         </code>
                         <Button 
                           size="sm" 
                           variant="ghost"
-                          onClick={() => copyToClipboard(apiKey.key_preview)}
+                          onClick={() => copyToClipboard(apiKey.key)}
                         >
                           <Copy className="w-3 h-3" />
                         </Button>
@@ -338,11 +321,10 @@ export function ApiKeyManagement() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">
-                        {apiKey.environment}
+                      <Badge variant={apiKey.is_active ? "outline" : "secondary"}>
+                        {apiKey.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{apiKey.usage_count.toLocaleString()}</TableCell>
                     <TableCell>
                       {apiKey.last_used_at 
                         ? formatDate(apiKey.last_used_at)
@@ -350,6 +332,9 @@ export function ApiKeyManagement() {
                       }
                     </TableCell>
                     <TableCell>{formatDate(apiKey.created_at)}</TableCell>
+                    <TableCell>
+                      {apiKey.rate_limit_per_minute}/min
+                    </TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
