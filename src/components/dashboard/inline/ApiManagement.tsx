@@ -29,6 +29,7 @@ export function ApiManagement() {
   const [selectedApiKey, setSelectedApiKey] = useState<string>("");
   const [newKeyName, setNewKeyName] = useState("");
   const [newKeyEnvironment, setNewKeyEnvironment] = useState("production");
+  const [generatedKey, setGeneratedKey] = useState<string | null>(null);
 
   const { data: apiKeys, isLoading } = useQuery({
     queryKey: ["api-keys"],
@@ -44,11 +45,11 @@ export function ApiManagement() {
 
   const createMutation = useMutation({
     mutationFn: ({ name, environment }: { name: string; environment: string }) =>
-      createApiKeyUtil(name),  // environment is not needed for our schema
+      createApiKeyUtil(name),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["api-keys"] });
       queryClient.invalidateQueries({ queryKey: ["api-usage"] });
-      setSelectedApiKey(data.key);
+      setGeneratedKey(data.key); // <-- Show the key to the user
       setIsViewDialogOpen(true);
       setIsCreateDialogOpen(false);
       setNewKeyName("");
@@ -70,7 +71,7 @@ export function ApiManagement() {
     mutationFn: (keyId: string) => rotateApiKeyUtil(keyId),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["api-keys"] });
-      setSelectedApiKey(data.key);
+      setGeneratedKey(data.key); // <-- Show the new key to the user
       setIsViewDialogOpen(true);
       toast({
         title: "API Key Rotated",
@@ -254,16 +255,16 @@ export function ApiManagement() {
                         data-testid={`api-key-${apiKey.id}`}
                       >
                         <div className="text-sm font-medium text-card-foreground">
-                          {apiKey.key_name}
+                          {apiKey.name}
                         </div>
                         <div className="text-xs font-mono text-muted-foreground">
-                          {apiKey.api_key ? `${apiKey.api_key.substring(0, 8)}...${apiKey.api_key.substring(apiKey.api_key.length - 4)}` : 'Hidden'}
+                          {apiKey.key ? `${apiKey.key.substring(0, 8)}...${apiKey.key.substring(apiKey.key.length - 4)}` : 'Hidden'}
                         </div>
                         <div className="text-xs text-muted-foreground capitalize">
                           Production
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {apiKey.rate_limit_per_day?.toLocaleString() || 0}
+                          {apiKey.rate_limit_per_minute?.toLocaleString() || 0}
                         </div>
                         <div className="text-xs text-muted-foreground">
                           {apiKey.last_used_at ? formatDate(apiKey.last_used_at) : "Never"}
@@ -276,7 +277,7 @@ export function ApiManagement() {
                             variant="ghost"
                             size="sm"
                             className="p-1 h-8 w-8"
-                            onClick={() => handleCopyApiKey(apiKey.api_key || '')}
+                            onClick={() => handleCopyApiKey(apiKey.key || '')}
                             data-testid={`copy-key-${apiKey.id}`}
                           >
                             <Copy className="w-4 h-4" />
@@ -285,7 +286,7 @@ export function ApiManagement() {
                             variant="ghost"
                             size="sm"
                             className="p-1 h-8 w-8"
-                            onClick={() => handleViewApiKey(apiKey.api_key || '')}
+                            onClick={() => handleViewApiKey(apiKey.key || '')}
                             data-testid={`view-key-${apiKey.id}`}
                           >
                             <Eye className="w-4 h-4" />
@@ -413,6 +414,32 @@ export function ApiManagement() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Generated API Key Dialog */}
+      {generatedKey && (
+        <Dialog open={!!generatedKey} onOpenChange={() => setGeneratedKey(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>New API Key</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Label>Your API Key (copy and store it securely!)</Label>
+              <div className="flex items-center space-x-2">
+                <Input value={generatedKey} readOnly className="font-mono text-sm" />
+                <Button size="sm" onClick={() => { navigator.clipboard.writeText(generatedKey!); toast({ title: "Copied", description: "API key copied to clipboard" }); }}>
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                This is the only time you'll see this key. Make sure to copy it now.
+              </p>
+              <Button onClick={() => setGeneratedKey(null)}>
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </>
   );
 }
