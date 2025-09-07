@@ -24,22 +24,23 @@ import { Layout } from "@/components/layout/Layout";
 interface ApiKey {
   id: string;
   name: string;
-  key: string;
+  key: string | null;
   key_hash: string;
-  partner_id: string;
+  partner_id: string | null;
   is_active: boolean;
   created_at: string;
   last_used_at: string | null;
   expires_at: string | null;
   rate_limit_per_minute: number;
+  // user_id and active can be added if you use them
 }
 
 interface DeveloperProfile {
-  partner_id: string;
+  partner_id: string | null;
   company_name: string | null;
   website: string | null;
-  api_usage_plan: string;
-  monthly_request_limit: number;
+  api_usage_plan: string | null;
+  monthly_request_limit: number | null;
 }
 
 export default function ApiManagementPage() {
@@ -53,6 +54,7 @@ export default function ApiManagementPage() {
   const [visibleKeys, setVisibleKeys] = useState<Set<string>>(new Set());
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [keyToDelete, setKeyToDelete] = useState<ApiKey | null>(null);
+  const [generatedKey, setGeneratedKey] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
@@ -62,17 +64,16 @@ export default function ApiManagementPage() {
   }, [user]);
 
   const fetchDeveloperProfile = async () => {
+    if (!user) return;
     try {
       const { data, error } = await supabase
         .from('developer_profiles')
         .select('partner_id, company_name, website, api_usage_plan, monthly_request_limit')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .single();
-      
       if (error) throw error;
       setDeveloperProfile(data);
     } catch (error) {
-      console.error('Error fetching developer profile:', error);
       toast({
         title: "Error",
         description: "Failed to fetch developer profile",
@@ -82,15 +83,15 @@ export default function ApiManagementPage() {
   };
 
   const fetchApiKeys = async () => {
+    if (!user?.id) return; // <-- Fix: Ensure user.id is defined
     try {
       const { data, error } = await supabase
         .from('api_keys')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id) // <-- Now always a string
         .order('created_at', { ascending: false });
-      
       if (error) throw error;
-      setApiKeys(data || []);
+      setApiKeys((data ?? []) as ApiKey[]);
     } catch (error) {
       console.error('Error fetching API keys:', error);
       toast({
@@ -119,7 +120,7 @@ export default function ApiManagementPage() {
   };
 
   const createApiKey = async () => {
-    if (!newKeyName.trim()) {
+    if (!newKeyName.trim() || !user?.id) {
       toast({
         title: "Error",
         description: "Please enter a name for your API key",
@@ -127,7 +128,6 @@ export default function ApiManagementPage() {
       });
       return;
     }
-
     setCreating(true);
     try {
       const apiKey = generateApiKey();
@@ -136,9 +136,8 @@ export default function ApiManagementPage() {
       const { data: profile, error: profileError } = await supabase
         .from('developer_profiles')
         .select('partner_id')
-        .eq('user_id', user?.id)
+        .eq('user_id', user.id)
         .single();
-      
       if (profileError) throw profileError;
 
       const { data, error } = await supabase
@@ -147,17 +146,17 @@ export default function ApiManagementPage() {
           name: newKeyName.trim(),
           key: apiKey,
           key_hash: keyHash,
-          partner_id: profile.partner_id,
-          user_id: user?.id,
+          partner_id: profile?.partner_id ?? null,
+          user_id: user.id,
           is_active: true,
           rate_limit_per_minute: 60
         })
         .select()
         .single();
-      
       if (error) throw error;
-      
-      setApiKeys(prev => [data, ...prev]);
+
+      setApiKeys(prev => [data as ApiKey, ...prev]);
+      setGeneratedKey(apiKey); // <-- Show the key to the user
       setNewKeyName('');
       setShowCreateDialog(false);
       toast({
@@ -176,7 +175,8 @@ export default function ApiManagementPage() {
     }
   };
 
-  const copyToClipboard = (text: string, label: string) => {
+  const copyToClipboard = (text: string | null | undefined, label: string) => {
+    if (!text) return;
     navigator.clipboard.writeText(text);
     toast({
       title: "Success",
@@ -224,26 +224,25 @@ export default function ApiManagementPage() {
   const rotateApiKey = async (keyId: string) => {
     try {
       const newApiKey = generateApiKey();
-      const keyHash = await hashApiKey(newApiKey);
-      
+      const newKeyHash = await hashApiKey(newApiKey);
+
       const { error } = await supabase
         .from('api_keys')
         .update({
           key: newApiKey,
-          key_hash: keyHash,
+          key_hash: newKeyHash,
           last_used_at: null
         })
         .eq('id', keyId);
-      
+
       if (error) throw error;
-      
       await fetchApiKeys();
+      setGeneratedKey(newApiKey); // <-- Show the new key to the user
       toast({
         title: "Success",
         description: "API key rotated successfully!",
       });
     } catch (error) {
-      console.error('Error rotating API key:', error);
       toast({
         title: "Error",
         description: "Failed to rotate API key",
@@ -259,25 +258,20 @@ export default function ApiManagementPage() {
 
   const deleteApiKey = async () => {
     if (!keyToDelete) return;
-    
     try {
       const { error } = await supabase
         .from('api_keys')
         .delete()
         .eq('id', keyToDelete.id);
-      
       if (error) throw error;
-      
       setApiKeys(prev => prev.filter(key => key.id !== keyToDelete.id));
-      setDeleteDialogOpen(false);
-      setKeyToDelete(null);
-      
       toast({
         title: "Success",
         description: "API key deleted successfully!",
       });
+      setDeleteDialogOpen(false);
+      setKeyToDelete(null);
     } catch (error) {
-      console.error('Error deleting API key:', error);
       toast({
         title: "Error",
         description: "Failed to delete API key",
@@ -296,7 +290,8 @@ export default function ApiManagementPage() {
     });
   };
 
-  const maskApiKey = (key: string) => {
+  const maskApiKey = (key: string | null) => {
+    if (!key) return "";
     if (key.length <= 8) return key;
     const prefix = key.substring(0, 3);
     const suffix = key.substring(key.length - 4);
@@ -385,7 +380,7 @@ export default function ApiManagementPage() {
                     variant="ghost" 
                     size="sm" 
                     className="h-auto p-0 text-xs mt-1"
-                    onClick={() => copyToClipboard(developerProfile?.partner_id || '', 'Partner ID')}
+                    onClick={() => copyToClipboard(developerProfile?.partner_id ?? '', 'Partner ID')}
                   >
                     <Copy className="h-3 w-3 mr-1" />
                     Copy
@@ -451,7 +446,7 @@ export default function ApiManagementPage() {
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <code className="relative rounded bg-muted px-2 py-1 font-mono text-sm">
-                                  {visibleKeys.has(apiKey.id) ? apiKey.key : maskApiKey(apiKey.key)}
+                                  {visibleKeys.has(apiKey.id) ? apiKey.key ?? "" : maskApiKey(apiKey.key)}
                                 </code>
                                 <div className="flex items-center gap-1">
                                   <Button
@@ -492,7 +487,6 @@ export default function ApiManagementPage() {
                                 <Switch
                                   checked={apiKey.is_active}
                                   onCheckedChange={() => toggleKeyStatus(apiKey.id, apiKey.is_active)}
-                                  size="sm"
                                 />
                               </div>
                             </TableCell>
@@ -632,6 +626,32 @@ export default function ApiManagementPage() {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+
+        {/* Show Generated API Key Dialog */}
+        {generatedKey && (
+          <Dialog open={!!generatedKey} onOpenChange={() => setGeneratedKey(null)}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>New API Key</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <Label>Your API Key (copy and store it securely!)</Label>
+                <div className="flex items-center space-x-2">
+                  <Input value={generatedKey} readOnly className="font-mono text-sm" />
+                  <Button size="sm" onClick={() => { navigator.clipboard.writeText(generatedKey!); toast({ title: "Copied", description: "API key copied to clipboard" }); }}>
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  This is the only time you'll see this key. Make sure to copy it now.
+                </p>
+                <Button onClick={() => setGeneratedKey(null)}>
+                  Close
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </Layout>
   );
