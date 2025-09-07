@@ -33,7 +33,17 @@ export function AdvancedFiltering() {
   const [country, setCountry] = useState("all-countries");
   const [transactionType, setTransactionType] = useState("all-types");
 
-  const { data: transactions = [], isLoading, error } = useQuery({
+  type Transaction = {
+    id: string;
+    customerName: string;
+    transactionType: string;
+    amount: string;
+    riskScore: number;
+    status: string;
+    createdAt?: string;
+  };
+
+  const { data: transactions = [], isLoading, error } = useQuery<Transaction[]>({
     queryKey: ["/api/transactions", "filtered", { dateRange, riskLevel, country, transactionType }],
     enabled: true,
     retry: false,
