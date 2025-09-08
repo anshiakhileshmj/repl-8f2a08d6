@@ -213,7 +213,6 @@ export default function ProfilePage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Profile Settings</h1>
-            <p className="text-muted-foreground">Manage your account information and preferences</p>
           </div>
           <Button 
             onClick={handleSaveProfile} 
@@ -334,7 +333,6 @@ export default function ProfilePage() {
             <Card>
               <CardHeader>
                 <CardTitle>Personal Information</CardTitle>
-                <CardDescription>Update your personal details and contact information</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -400,7 +398,6 @@ export default function ProfilePage() {
                   <Building className="w-5 h-5 mr-2" />
                   Professional Information
                 </CardTitle>
-                <CardDescription>Your work and company details</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -472,8 +469,7 @@ export default function ProfilePage() {
             {/* Account Preferences */}
             <Card>
               <CardHeader>
-                <CardTitle>Account Preferences</CardTitle>
-                <CardDescription>Manage your account settings and preferences</CardDescription>
+                <CardTitle>Account Action</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
