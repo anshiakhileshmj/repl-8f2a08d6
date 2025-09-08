@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Settings, Bell, Shield, Globe, Palette, Save } from "lucide-react";
+import { Settings, Bell, Shield, Globe, Save } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,11 +35,6 @@ export default function SettingsPage() {
     sanctionsUpdates: true,
     riskThreshold: "70",
     
-    // UI Settings
-    theme: "dark",
-    timezone: "UTC",
-    language: "en",
-    dateFormat: "MM/DD/YYYY",
   });
 
   const { toast } = useToast();
@@ -300,72 +295,6 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* UI Settings */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Palette className="w-5 h-5 mr-2" />
-              Interface Settings
-            </CardTitle>
-            <CardDescription>Customize the dashboard appearance and behavior</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="theme">Theme</Label>
-              <Select value={settings.theme} onValueChange={(value) => handleSettingChange("theme", value)}>
-                <SelectTrigger data-testid="select-theme">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="timezone">Timezone</Label>
-              <Select value={settings.timezone} onValueChange={(value) => handleSettingChange("timezone", value)}>
-                <SelectTrigger data-testid="select-timezone">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="UTC">UTC</SelectItem>
-                  <SelectItem value="EST">Eastern Time</SelectItem>
-                  <SelectItem value="PST">Pacific Time</SelectItem>
-                  <SelectItem value="GMT">Greenwich Mean Time</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="language">Language</Label>
-              <Select value={settings.language} onValueChange={(value) => handleSettingChange("language", value)}>
-                <SelectTrigger data-testid="select-language">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="en">English</SelectItem>
-                  <SelectItem value="es">Spanish</SelectItem>
-                  <SelectItem value="fr">French</SelectItem>
-                  <SelectItem value="de">German</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="date-format">Date Format</Label>
-              <Select value={settings.dateFormat} onValueChange={(value) => handleSettingChange("dateFormat", value)}>
-                <SelectTrigger data-testid="select-date-format">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MM/DD/YYYY">MM/DD/YYYY</SelectItem>
-                  <SelectItem value="DD/MM/YYYY">DD/MM/YYYY</SelectItem>
-                  <SelectItem value="YYYY-MM-DD">YYYY-MM-DD</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </Layout>
   );
