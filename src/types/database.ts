@@ -44,9 +44,6 @@ export interface Transaction {
   customer_name?: string;
   customer_id?: string;
   description?: string;
-  sender_ip_address?: string;
-  sender_country?: string;
-  sender_country_code?: string;
   processed_at: string;
   created_at: string;
 }
@@ -159,20 +156,4 @@ export interface DeveloperProfile {
   website: string | null;
   api_usage_plan: string;
   monthly_request_limit: number;
-}
-
-export interface GeographicRiskData {
-  id: string;
-  country: string;
-  country_code: string;
-  latitude: number;
-  longitude: number;
-  risk_score: number;
-  transaction_count: number;
-  high_risk_count: number;
-  medium_risk_count: number;
-  low_risk_count: number;
-  total_amount: number;
-  last_updated: string;
-  created_at: string;
 }
