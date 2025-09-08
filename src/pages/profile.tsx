@@ -481,16 +481,16 @@ export default function ProfilePage() {
                       data-testid="input-website"
                     />
                   </div>
-                </div>
-                <div>
-                  <Label htmlFor="linkedin">LinkedIn Profile</Label>
-                  <Input
-                    id="linkedin"
-                    placeholder="https://linkedin.com/in/yourprofile"
-                    value={profile.linkedin}
-                    onChange={(e) => handleProfileUpdate("linkedin", e.target.value)}
-                    data-testid="input-linkedin"
-                  />
+                  <div>
+                    <Label htmlFor="linkedin">LinkedIn Profile</Label>
+                    <Input
+                      id="linkedin"
+                      placeholder="https://linkedin.com/in/yourprofile"
+                      value={profile.linkedin}
+                      onChange={(e) => handleProfileUpdate("linkedin", e.target.value)}
+                      data-testid="input-linkedin"
+                    />
+                  </div>
                 </div>
               </CardContent>
             </Card>
