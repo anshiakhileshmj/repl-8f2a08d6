@@ -133,12 +133,13 @@ export default function SanctionsPage() {
 
   return (
     <Layout>
-      <ComingSoonOverlay
-        title="Sanctions & PEP"
-        emoji="🛡️"
-        description="Enhanced sanctions screening and PEP monitoring capabilities are in development. Advanced compliance tools for politically exposed persons and sanctions list management coming soon!"
-      />
-      <div className="space-y-6">
+      <div className="relative">
+        <ComingSoonOverlay
+          title="Sanctions & PEP"
+          emoji="🛡️"
+          description="Enhanced sanctions screening and PEP monitoring capabilities are in development. Advanced compliance tools for politically exposed persons and sanctions list management coming soon!"
+        />
+        <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -403,6 +404,7 @@ export default function SanctionsPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </Layout>
   );

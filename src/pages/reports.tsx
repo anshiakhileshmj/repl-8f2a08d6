@@ -72,12 +72,13 @@ export default function ReportsPage() {
 
   return (
     <Layout>
-      <ComingSoonOverlay
-        title="Compliance Reports"
-        emoji="📊"
-        description="Advanced reporting and regulatory compliance tools are being built. Automated SAR, CTR, and regulatory submission features will be available soon!"
-      />
-      <div className="space-y-6">
+      <div className="relative">
+        <ComingSoonOverlay
+          title="Compliance Reports"
+          emoji="📊"
+          description="Advanced reporting and regulatory compliance tools are being built. Automated SAR, CTR, and regulatory submission features will be available soon!"
+        />
+        <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -330,6 +331,7 @@ export default function ReportsPage() {
             </div>
           </CardContent>
         </Card>
+        </div>
       </div>
     </Layout>
   );

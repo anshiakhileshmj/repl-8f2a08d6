@@ -80,12 +80,13 @@ export default function CasesPage() {
 
   return (
     <Layout>
-      <ComingSoonOverlay
-        title="Case Management"
-        emoji="📁"
-        description="Comprehensive investigation and case tracking tools are being developed. Enhanced workflows for compliance investigations and case resolution coming soon!"
-      />
-      <div className="space-y-6">
+      <div className="relative">
+        <ComingSoonOverlay
+          title="Case Management"
+          emoji="📁"
+          description="Comprehensive investigation and case tracking tools are being developed. Enhanced workflows for compliance investigations and case resolution coming soon!"
+        />
+        <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -289,6 +290,7 @@ export default function CasesPage() {
             </Table>
           </CardContent>
         </Card>
+        </div>
       </div>
     </Layout>
   );

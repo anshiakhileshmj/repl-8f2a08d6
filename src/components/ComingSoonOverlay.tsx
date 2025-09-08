@@ -12,7 +12,7 @@ export function ComingSoonOverlay({ title, emoji, description }: ComingSoonOverl
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="absolute inset-0 z-50 flex items-center justify-center"
       style={{ backdropFilter: 'blur(12px)' }}
     >
       {/* Glassmorphism Background */}
