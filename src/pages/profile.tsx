@@ -326,32 +326,6 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
 
-            {/* Account Activity */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Recent Activity</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Last Login</span>
-                    <span>{new Date(profile.lastLogin).toLocaleDateString()}</span>
-                  </div>
-                </div>
-                <div className="text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">API Keys</span>
-                    <span>3 active</span>
-                  </div>
-                </div>
-                <div className="text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Current Plan</span>
-                    <span>Professional</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           {/* Profile Form */}
