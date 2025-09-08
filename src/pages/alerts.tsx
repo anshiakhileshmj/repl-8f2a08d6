@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Layout } from "@/components/layout/Layout";
+import { ComingSoonOverlay } from "@/components/ComingSoonOverlay";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -71,6 +72,11 @@ export default function AlertsPage() {
 
   return (
     <Layout>
+      <ComingSoonOverlay
+        title="Alert Management"
+        emoji="🚨"
+        description="Advanced alert monitoring and compliance management features are currently under development. Stay tuned for enhanced suspicious activity detection and real-time notifications!"
+      />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

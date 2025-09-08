@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Layout } from "@/components/layout/Layout";
+import { ComingSoonOverlay } from "@/components/ComingSoonOverlay";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -79,6 +80,11 @@ export default function CasesPage() {
 
   return (
     <Layout>
+      <ComingSoonOverlay
+        title="Case Management"
+        emoji="📁"
+        description="Comprehensive investigation and case tracking tools are being developed. Enhanced workflows for compliance investigations and case resolution coming soon!"
+      />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

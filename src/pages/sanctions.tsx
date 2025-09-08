@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Layout } from "@/components/layout/Layout";
+import { ComingSoonOverlay } from "@/components/ComingSoonOverlay";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -132,6 +133,11 @@ export default function SanctionsPage() {
 
   return (
     <Layout>
+      <ComingSoonOverlay
+        title="Sanctions & PEP"
+        emoji="🛡️"
+        description="Enhanced sanctions screening and PEP monitoring capabilities are in development. Advanced compliance tools for politically exposed persons and sanctions list management coming soon!"
+      />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">

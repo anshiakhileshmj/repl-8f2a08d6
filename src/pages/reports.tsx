@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Layout } from "@/components/layout/Layout";
+import { ComingSoonOverlay } from "@/components/ComingSoonOverlay";
 import { supabase } from "@/integrations/supabase/client";
 
 
@@ -71,6 +72,11 @@ export default function ReportsPage() {
 
   return (
     <Layout>
+      <ComingSoonOverlay
+        title="Compliance Reports"
+        emoji="📊"
+        description="Advanced reporting and regulatory compliance tools are being built. Automated SAR, CTR, and regulatory submission features will be available soon!"
+      />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
